@@ -1,0 +1,45 @@
+import React from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+
+import LandingPage from '@/pages/LandingPage';
+import LoginPage from '@/pages/LoginPage';
+import SignUpPage from '@/pages/SignUpPage';
+import AuthCallback from '@/components/auth/AuthCallback';
+import OnboardingPage from '@/pages/OnboardingPage';
+import DashboardPage from '@/pages/DashboardPage';
+import ScannerPage from '@/pages/ScannerPage';
+import ScanResultPage from '@/pages/ScanResultPage';
+import HistoryPage from '@/pages/HistoryPage';
+import SettingsPage from '@/pages/SettingsPage';
+import AppShell from '@/components/layout/AppShell';
+
+export default function App() {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        {/* Public Routes */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignUpPage />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
+        
+        {/* Protected App Routes */}
+        <Route path="/app" element={<ProtectedRoute />}>
+          <Route path="onboarding" element={<OnboardingPage />} />
+          
+          <Route element={<AppShell />}>
+            <Route index element={<DashboardPage />} />
+            <Route path="scan" element={<ScannerPage />} />
+            <Route path="scan/:id" element={<ScanResultPage />} />
+            <Route path="history" element={<HistoryPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+          </Route>
+        </Route>
+      </Routes>
+    </AnimatePresence>
+  );
+}
