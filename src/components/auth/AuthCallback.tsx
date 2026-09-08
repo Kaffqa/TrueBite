@@ -11,7 +11,7 @@ export default function AuthCallback() {
       if (session) {
         navigate('/app', { replace: true });
       } else {
-        navigate('/login', { replace: true });
+        navigate('/', { replace: true });
       }
     });
 
@@ -27,10 +27,10 @@ export default function AuthCallback() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center text-green-50">
-      <Loader2 className="w-12 h-12 animate-spin text-green-500 mb-4" />
-      <h2 className="font-serif text-2xl">Completing sign in...</h2>
-      <p className="font-mono text-green-400 mt-2">Please wait a moment.</p>
+    <div className="min-h-screen bg-[#f7f9f8] flex flex-col items-center justify-center">
+      <Loader2 className="w-10 h-10 animate-spin text-[#1a3825] mb-4" />
+      <h2 className="font-serif text-2xl text-[#1e4832]">Completing sign in...</h2>
+      <p className="font-mono text-[12px] text-[#8ba797] mt-2">Please wait a moment.</p>
     </div>
   );
-}
+}

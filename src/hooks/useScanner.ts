@@ -3,6 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNutrition } from '@/contexts/NutritionContext';
 import { compressImage, uploadScanImage, fileToBase64 } from '@/lib/storage';
 import { analyzeFood } from '@/lib/ai-provider';
+import { format } from 'date-fns';
 import { supabase } from '@/lib/supabase';
 import type { FoodAnalysisResult, UserHealthProfile } from '@/types/ai.types';
 import type { MealType } from '@/types/database.types';
@@ -127,8 +128,8 @@ export function useScanner() {
           fiber_g: analysisResult.totalNutrition.fiberG,
           sugar_g: analysisResult.totalNutrition.sugarG,
           sodium_mg: analysisResult.totalNutrition.sodiumMg,
-          consumed_at: new Date().toISOString(),
-          log_date: new Date().toISOString().split('T')[0],
+          consumed_at: format(new Date(), "yyyy-MM-dd'T'HH:mm:ssxxx"),
+          log_date: format(new Date(), 'yyyy-MM-dd'),
           portion_multiplier: 1,
         };
         await addMealLog(logData);
@@ -171,8 +172,8 @@ export function useScanner() {
       fiber_g: result.totalNutrition.fiberG,
       sugar_g: result.totalNutrition.sugarG,
       sodium_mg: result.totalNutrition.sodiumMg,
-      consumed_at: new Date().toISOString(),
-      log_date: new Date().toISOString().split('T')[0],
+      consumed_at: format(new Date(), "yyyy-MM-dd'T'HH:mm:ssxxx"),
+      log_date: format(new Date(), 'yyyy-MM-dd'),
       portion_multiplier: 1,
     };
     

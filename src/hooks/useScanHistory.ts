@@ -12,12 +12,12 @@ interface ScanFilters {
 /**
  * Hook for fetching scan history with pagination and filtering.
  */
-export function useScanHistory(pageSize: number = 20) {
+export function useScanHistory(pageSize: number = 20, initialFilters: ScanFilters = {}) {
   const { user } = useAuth();
   const [scans, setScans] = useState<FoodScan[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
-  const [filters, setFilters] = useState<ScanFilters>({});
+  const [filters, setFilters] = useState<ScanFilters>(initialFilters);
   
   // Track current page offset
   const [offset, setOffset] = useState(0);
@@ -31,7 +31,7 @@ export function useScanHistory(pageSize: number = 20) {
       
       let query = supabase
         .from('food_scans')
-        .select('*')
+        .select('*, meal_logs(id)')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .range(currentOffset, currentOffset + pageSize - 1);
@@ -41,11 +41,11 @@ export function useScanHistory(pageSize: number = 20) {
       }
       
       if (filters.startDate) {
-        query = query.gte('created_at', `${filters.startDate}T00:00:00.000Z`);
+        query = query.gte('created_at', filters.startDate);
       }
       
       if (filters.endDate) {
-        query = query.lte('created_at', `${filters.endDate}T23:59:59.999Z`);
+        query = query.lte('created_at', filters.endDate);
       }
 
       const { data, error } = await query;

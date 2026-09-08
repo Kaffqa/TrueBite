@@ -1,5 +1,5 @@
 import type { AIProvider, FoodAnalysisResult, UserHealthProfile } from '@/types/ai.types';
-import { buildSystemPrompt, buildUserPrompt, FOOD_ANALYSIS_SCHEMA } from './prompt-builder';
+import { buildSystemPrompt, buildTextSystemPrompt, buildUserPrompt, FOOD_ANALYSIS_SCHEMA } from './prompt-builder';
 
 /**
  * Implementation of AIProvider using the Gemini REST API.
@@ -20,7 +20,7 @@ export class GeminiProvider implements AIProvider {
       throw new Error('Gemini API key is not configured.');
     }
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
     
     // Strip data URI prefix if present
     const base64Data = imageBase64.includes('base64,') 
@@ -82,6 +82,71 @@ export class GeminiProvider implements AIProvider {
     } catch (error) {
       console.error('Error in Gemini analysis:', error);
       throw new Error(`Failed to analyze food with Gemini: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Analyzes food from a text description using Gemini.
+   */
+  async analyzeText(description: string, userProfile: UserHealthProfile): Promise<FoodAnalysisResult> {
+    const startTime = Date.now();
+    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+    if (!apiKey) {
+      throw new Error('Gemini API key is not configured.');
+    }
+
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+    
+    const systemPrompt = buildTextSystemPrompt(userProfile);
+    const userPrompt = `Analyze this food description: "${description}". Estimate nutrition and check for safety concerns based on my health profile.`;
+
+    const requestBody = {
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { text: userPrompt }
+          ]
+        }
+      ],
+      system_instruction: {
+        parts: [{ text: systemPrompt }]
+      },
+      generationConfig: {
+        response_mime_type: "application/json",
+        response_schema: FOOD_ANALYSIS_SCHEMA
+      }
+    };
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Gemini API error: ${response.statusText} - ${JSON.stringify(errorData)}`);
+      }
+
+      const data = await response.json();
+      
+      const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!content) {
+        throw new Error('Invalid response structure from Gemini API.');
+      }
+
+      const result = JSON.parse(content) as FoodAnalysisResult;
+      result.processingTimeMs = Date.now() - startTime;
+      
+      return result;
+    } catch (error) {
+      console.error('Error in Gemini text analysis:', error);
+      throw new Error(`Failed to analyze text with Gemini: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

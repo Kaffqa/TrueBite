@@ -1,33 +1,305 @@
-import React from 'react';
-import { Camera, Image as ImageIcon, X } from 'lucide-react';
+import React, { useRef, useEffect, useState } from 'react';
+import { Camera, Image as ImageIcon, X, RefreshCw, AlertCircle, AlertTriangle, ShieldAlert, Loader2, ChevronLeft, ShieldCheck } from 'lucide-react';
+import { Scan as PhosphorScan } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useCamera } from '@/hooks/useCamera';
+import { useScanner } from '@/hooks/useScanner';
 
 export default function ScannerPage() {
   const navigate = useNavigate();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const { stream, isActive, startCamera, stopCamera, capturePhoto, toggleFacingMode } = useCamera();
+  const { scanState, result, error, processScan, reset, confirmMealLog } = useScanner();
+
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    startCamera();
+    return () => {
+      stopCamera();
+    };
+  }, [startCamera, stopCamera]);
+
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      if (videoRef.current.srcObject !== stream) {
+        videoRef.current.srcObject = stream;
+      }
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(e => {
+          if (e.name !== 'AbortError') {
+            console.error("Video play failed:", e);
+          }
+        });
+      }
+    }
+  }, [stream, isActive, previewUrl]);
+
+  const handleCapture = async () => {
+    try {
+      const blob = await capturePhoto(videoRef as React.RefObject<HTMLVideoElement>);
+      setPreviewUrl(URL.createObjectURL(blob));
+      await processScan(blob);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Gambar terlalu besar! Maksimal ukuran file adalah 5MB.");
+        if (fileInputRef.current) fileInputRef.current.value = '';
+        return;
+      }
+      setPreviewUrl(URL.createObjectURL(file));
+      await processScan(file);
+    }
+  };
+
+  const handleReset = () => {
+    setPreviewUrl(null);
+    reset();
+  };
+
+  const isLoading = scanState === 'uploading' || scanState === 'analyzing';
 
   return (
-    <div className="fixed inset-0 z-50 bg-black flex flex-col">
-      <div className="flex justify-between items-center p-6 text-white z-10 absolute top-0 w-full bg-gradient-to-b from-black/60 to-transparent">
-        <button onClick={() => navigate(-1)} className="p-2 rounded-full bg-black/40 backdrop-blur-md">
-          <X className="w-6 h-6" />
+    <div className="h-full flex flex-col font-sans max-w-7xl mx-auto w-full">
+      
+      {/* Header for Mobile (Hidden on Desktop) */}
+      <div className="md:hidden flex items-center mb-2 px-4 pt-4">
+        <button onClick={() => navigate('/app')} className="p-2 -ml-2 rounded-full hover:bg-black/5 text-[#1e4832] transition-colors">
+          <ChevronLeft size={24} />
         </button>
-        <span className="font-serif text-xl">Scan Meal</span>
-        <div className="w-10"></div>
+        <h2 className="font-serif text-[22px] text-[#1e4832] ml-2">Scanner</h2>
       </div>
 
-      <div className="flex-1 flex items-center justify-center">
-        {/* Camera Viewport Placeholder */}
-        <p className="text-green-400/50 font-mono italic">Camera active...</p>
-      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 h-full min-h-[600px] p-4 lg:p-0 lg:py-6">
+        
+        {/* Left Column: AI Vision Scanner Card */}
+        <div className="bg-white rounded-[4px] border border-[#e8efe9] p-8 flex flex-col shadow-sm h-full">
+          <div>
+            <h3 className="font-serif text-[28px] text-[#1e4832] mb-3">AI Vision Scanner</h3>
+            <p className="font-mono text-[13px] text-[#8ba797] leading-relaxed mb-8 max-w-md">
+              Snap or upload a food label to instantly detect<br />
+              allergens, hidden additives, and nutritional value.
+            </p>
+          </div>
 
-      <div className="absolute bottom-0 w-full p-8 pb-12 flex justify-center items-center bg-gradient-to-t from-black/80 to-transparent gap-8">
-        <button className="p-4 rounded-full bg-green-900/80 text-green-50 backdrop-blur-md">
-          <ImageIcon className="w-6 h-6" />
-        </button>
-        <button className="w-20 h-20 rounded-full bg-green-500 border-4 border-green-200/30 flex items-center justify-center shadow-xl hover:bg-green-400 transition-colors">
-          <Camera className="w-8 h-8 text-white" />
-        </button>
-        <div className="w-[52px]"></div>
+          <div className="relative flex-1 min-h-[320px] bg-white rounded-[4px] border-2 border-dashed border-[#d1dfd6] flex flex-col shadow-sm overflow-hidden group mb-6">
+            <div className="absolute inset-0 bg-[#f7f9f8] overflow-hidden" 
+                 onDragOver={(e) => e.preventDefault()}
+                 onDrop={(e) => {
+                   e.preventDefault();
+                   const file = e.dataTransfer.files[0];
+                   if (file) {
+                     if (file.size > 5 * 1024 * 1024) {
+                       alert("Gambar terlalu besar! Maksimal ukuran file adalah 5MB.");
+                       return;
+                     }
+                     setPreviewUrl(URL.createObjectURL(file));
+                     processScan(file);
+                   }
+                 }}
+            >
+              
+              {previewUrl && (
+                <img src={previewUrl} alt="Preview" className="absolute inset-0 w-full h-full object-cover rounded-[4px] z-10" />
+              )}
+              
+              {/* If camera active, show video feed filling the space */}
+              {isActive && !previewUrl ? (
+                <video 
+                  ref={videoRef} 
+                  autoPlay 
+                  playsInline 
+                  muted 
+                  className="absolute inset-0 w-full h-full object-cover rounded-[4px]"
+                />
+              ) : !previewUrl && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 z-10">
+                  <span className="font-mono text-[11px] font-bold text-[#4a6353] mb-12 uppercase tracking-wide">
+                    Drag and drop an image here, or use camera
+                  </span>
+
+                  <span className="font-mono text-[9px] font-bold text-[#8ba797] uppercase tracking-wider mt-auto">
+                    Supports JPG, PNG, HEIC (Max 5MB)
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Scanning Animation Overlay */}
+            {isLoading && (
+              <div className="absolute inset-0 z-20 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center">
+                <div className="w-16 h-16 rounded-full border-[3px] border-[#e8efe9] border-t-[#5a8069] animate-spin mb-4" />
+                <span className="font-serif text-lg text-[#1e4832]">
+                  {scanState === 'uploading' ? 'Uploading...' : 'Analyzing...'}
+                </span>
+              </div>
+            )}
+
+            <input 
+              type="file" 
+              ref={fileInputRef} 
+              onChange={handleFileUpload} 
+              accept="image/*" 
+              className="hidden" 
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-4">
+            <button 
+              onClick={handleCapture}
+              disabled={isLoading || !isActive}
+              className="flex-1 bg-gradient-to-r from-[#5a8069] to-[#1a3825] hover:brightness-110 active:scale-95 transition-all text-white py-4 rounded-[4px] font-mono text-[13px] font-semibold flex items-center justify-center gap-3 shadow-md disabled:opacity-50"
+            >
+              <PhosphorScan size={18} weight="fill" />
+              <span>Capture & Analyse</span>
+            </button>
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
+              className="w-[54px] h-[54px] shrink-0 rounded-[4px] border border-[#d1dfd6] flex items-center justify-center text-[#8ba797] hover:border-[#5a8069] hover:text-[#5a8069] transition-all bg-white shadow-sm"
+            >
+              <ImageIcon size={20} strokeWidth={1.5} />
+            </button>
+          </div>
+          
+          {/* Error Message */}
+          {scanState === 'error' && (
+            <div className="mt-4 p-4 rounded-[4px] bg-[#fecaca]/30 border border-[#fecaca] flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-[#991b1b] shrink-0" />
+              <span className="text-[#991b1b] text-sm font-mono flex-1">{error}</span>
+              <button onClick={handleReset} className="text-[#991b1b] underline text-xs font-mono">Retry</button>
+            </div>
+          )}
+        </div>
+
+        {/* Right Column: Result Card */}
+        {result ? (
+          <div className="bg-white rounded-[4px] border border-[#e8efe9] p-8 flex flex-col shadow-sm overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-serif text-[26px] text-[#1e4832] leading-tight pr-4">{result.mealTitle}</h3>
+              <span className={`shrink-0 w-[110px] justify-center py-2 rounded-[4px] text-[11px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                result.safetyStatus === 'safe' ? 'bg-[#bbf7d0] text-[#166534]' :
+                result.safetyStatus === 'caution' ? 'bg-[#fef3c7] text-[#92400e]' :
+                'bg-[#fecaca] text-[#991b1b]'
+              }`}>
+                {result.safetyStatus === 'safe' && <ShieldCheck size={14} strokeWidth={2.5} />}
+                {result.safetyStatus === 'caution' && <AlertTriangle size={14} strokeWidth={2.5} />}
+                {result.safetyStatus === 'danger' && <AlertCircle size={14} strokeWidth={2.5} />}
+                {result.safetyStatus === 'safe' ? 'Safe' : result.safetyStatus === 'caution' ? 'Flagged' : 'Danger'}
+              </span>
+            </div>
+
+            {result.healthWarnings && result.healthWarnings.length > 0 && (
+              <p className="font-mono text-[12px] text-[#6b8274] mb-6 leading-relaxed">
+                {result.healthWarnings.map((w: any) => typeof w === 'string' ? w : (w.message || w.title || w.detail)).filter(Boolean).join('. ')}
+              </p>
+            )}
+
+            <div className="grid grid-cols-2 gap-3 mb-6">
+               <div className="bg-[#132c1e] p-4 rounded-[4px] flex flex-col items-center justify-center text-center">
+                 <span className="font-serif text-[32px] text-white">{result.totalNutrition.calories}</span>
+                 <span className="font-mono text-[10px] text-[#8ba797] uppercase tracking-wider mt-1">Kcal</span>
+               </div>
+               <div className="bg-[#132c1e] p-4 rounded-[4px] flex flex-col items-center justify-center text-center">
+                 <span className="font-serif text-[32px] text-white">{result.totalNutrition.proteinG}g</span>
+                 <span className="font-mono text-[10px] text-[#8ba797] uppercase tracking-wider mt-1">Protein</span>
+               </div>
+               <div className="bg-[#132c1e] p-4 rounded-[4px] flex flex-col items-center justify-center text-center">
+                 <span className="font-serif text-[32px] text-white">{result.totalNutrition.carbsG}g</span>
+                 <span className="font-mono text-[10px] text-[#8ba797] uppercase tracking-wider mt-1">Carbs</span>
+               </div>
+               <div className="bg-[#132c1e] p-4 rounded-[4px] flex flex-col items-center justify-center text-center">
+                 <span className="font-serif text-[32px] text-white">{result.totalNutrition.fatG}g</span>
+                 <span className="font-mono text-[10px] text-[#8ba797] uppercase tracking-wider mt-1">Fat</span>
+               </div>
+            </div>
+
+            <div className="space-y-0 mb-8 border-t border-[#e8efe9]">
+              {result.items.map((item: any, i: number) => {
+                const isAllergen = item.detectedAllergens && item.detectedAllergens.length > 0;
+                
+                let badgeClass = '';
+                let label = '';
+                let Icon = null;
+
+                if (isAllergen) {
+                  badgeClass = 'bg-[#fecaca] text-[#991b1b]';
+                  label = 'Allergen Alert';
+                  Icon = ShieldAlert;
+                } else if (item.safetyStatus === 'danger') {
+                  badgeClass = 'bg-[#fecaca] text-[#991b1b]';
+                  label = 'Danger';
+                  Icon = AlertCircle;
+                } else if (item.safetyStatus === 'caution') {
+                  badgeClass = 'bg-[#fef3c7] text-[#92400e]';
+                  label = 'Flagged';
+                  Icon = AlertTriangle;
+                } else {
+                  badgeClass = 'bg-[#bbf7d0] text-[#166534]';
+                  label = 'Safe';
+                  Icon = ShieldCheck;
+                }
+                
+                return (
+                  <div key={i} className="py-4 border-b border-[#e8efe9] flex justify-between items-center gap-4">
+                    <div className="flex flex-col flex-1">
+                      <div className="font-serif text-[#1e4832] text-[16px] leading-snug">{item.name}</div>
+                      {isAllergen && (
+                        <div className="font-mono text-[11px] text-[#991b1b] mt-1.5 leading-tight">
+                          Allergen: {item.detectedAllergens.join(', ')}
+                        </div>
+                      )}
+                    </div>
+                    <div className={`shrink-0 w-[120px] justify-center text-[10px] font-mono ${badgeClass} py-2 rounded-[4px] uppercase tracking-wider font-bold flex items-center gap-1.5`}>
+                      <Icon size={12} strokeWidth={2.5} />
+                      {label}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="mt-auto flex gap-3">
+               <button 
+                 onClick={async () => {
+                   if (result.safetyStatus !== 'safe') {
+                     await confirmMealLog();
+                   }
+                   navigate('/app/history');
+                 }} 
+                 className="flex-2 w-full py-4 rounded-[4px] bg-gradient-to-r from-[#5a8069] to-[#1a3825] font-mono text-[13px] font-semibold text-white hover:brightness-110 active:scale-95 transition-all shadow-md flex justify-center items-center gap-2"
+               >
+                 + Add to Daily Log
+               </button>
+               <button 
+                 onClick={handleReset} 
+                 className="flex-1 py-4 rounded-[4px] border border-[#d1dfd6] font-mono text-[13px] font-semibold text-[#8ba797] hover:border-[#5a8069] hover:text-[#5a8069] bg-white transition-all shadow-sm flex justify-center items-center gap-2 whitespace-nowrap px-4"
+               >
+                 <RefreshCw size={16} /> Rescan
+               </button>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-[4px] border border-[#e8efe9] p-8 flex flex-col items-center justify-center text-center shadow-sm">
+            <h3 className="font-serif text-[32px] text-[#1e4832] mb-4">No Result Yet</h3>
+            <p className="font-mono text-[12px] text-[#8ba797] max-w-xs leading-relaxed">
+              Upload an image or use your camera to<br />
+              see the AI breakdown here.
+            </p>
+          </div>
+        )}
+
       </div>
     </div>
   );

@@ -3,9 +3,32 @@ import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowRight, Leaf, ShieldCheck, Activity, ScanLine } from 'lucide-react';
 import { motion } from 'framer-motion';
+import AuthModal from '@/components/auth/AuthModal';
 
 export default function LandingPage() {
   const { user, loading } = useAuth();
+  const [scrolled, setScrolled] = React.useState(false);
+  const [activeSection, setActiveSection] = React.useState('home');
+  const [isAuthModalOpen, setIsAuthModalOpen] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+
+      const sections = ['home', 'problem', 'how-it-works', 'features', 'who-its-for'];
+      const scrollPos = window.scrollY + 200; // Offset for header
+
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const el = document.getElementById(sections[i]);
+        if (el && scrollPos >= el.offsetTop) {
+          setActiveSection(sections[i]);
+          break;
+        }
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   // If already logged in, redirect to the app dashboard
   if (!loading && user) {
@@ -13,23 +36,37 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-green-900 flex flex-col">
+    <div id="home" className="min-h-screen flex flex-col font-sans selection:bg-[#163323] selection:text-white bg-white p-2 md:p-4">
       {/* Navbar */}
-      <header className="sticky top-0 bg-white w-full border-b border-gray-100 z-50">
-        <div className="flex justify-between items-center px-6 lg:px-12 py-3 w-full">
+      <header className={`w-full px-6 lg:px-12 py-4 flex justify-between items-center sticky top-4 z-50 transition-all duration-300 ${scrolled ? 'bg-white/80 backdrop-blur rounded-[32px] shadow-md border-b border-white/20' : 'bg-white rounded-t-[32px] shadow-sm'}`}>
           <div className="flex items-center gap-3">
             {/* Logo Icon */}
-            <img src="/logo.png" alt="Truebite Logo" className="w-11 h-11 object-contain" />
+            <img src="/logo.png?v=2" alt="Truebite Logo" className="w-11 h-11 object-contain" />
             <span className="font-sans text-[22px] font-black tracking-tight text-[#163323]">Truebite</span>
           </div>
           
-          <nav className="hidden md:flex items-center gap-6">
-            <a href="#home" className="text-[13px] font-mono font-bold text-[#163323]">Home</a>
-            <a href="#how-it-works" className="text-[13px] font-mono font-medium text-gray-500 hover:text-[#163323] transition-colors">How It Works</a>
-            <a href="#features" className="text-[13px] font-mono font-medium text-gray-500 hover:text-[#163323] transition-colors">Features</a>
-            <a href="#who-its-for" className="text-[13px] font-mono font-medium text-gray-500 hover:text-[#163323] transition-colors">Who It's For</a>
-          </nav>
-        </div>
+          <div className="hidden md:flex items-center gap-8">
+            <nav className="flex items-center gap-6">
+              {[
+                { id: 'home', label: 'Home' },
+                { id: 'problem', label: 'The Problem' },
+                { id: 'how-it-works', label: 'How It Works' },
+                { id: 'features', label: 'Features' },
+                { id: 'who-its-for', label: "Who It's For" }
+              ].map(link => (
+                <a 
+                  key={link.id}
+                  href={`#${link.id}`} 
+                  className={`text-[13px] font-mono transition-colors ${activeSection === link.id ? 'font-bold text-[#163323]' : 'font-medium text-gray-500 hover:text-[#163323]'}`}
+                >
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+            <button onClick={() => setIsAuthModalOpen(true)} className="bg-gradient-to-b from-[#5c8263] to-[#2a4e35] hover:from-[#4e7255] hover:to-[#21422b] text-white px-7 py-[11px] rounded-full text-[12px] font-mono shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.45),_0_6px_12px_rgba(22,51,35,0.3)] border-[2.5px] border-[#1a3825] transition-all flex items-center justify-center font-medium tracking-wide">
+              Get Started
+            </button>
+          </div>
       </header>
 
       {/* Hero Section */}
@@ -54,9 +91,9 @@ export default function LandingPage() {
               and track macros automatically.
             </p>
             <div className="flex flex-wrap items-center justify-end gap-4 w-full">
-              <Link to="/signup" className="bg-gradient-to-b from-[#5c8263] to-[#2a4e35] hover:from-[#4e7255] hover:to-[#21422b] text-white px-8 py-[13px] rounded-full text-[13px] font-mono shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.45),_0_6px_12px_rgba(22,51,35,0.3)] border-[2.5px] border-[#1a3825] transition-all flex items-center justify-center font-medium tracking-wide">
+              <button onClick={() => setIsAuthModalOpen(true)} className="bg-gradient-to-b from-[#5c8263] to-[#2a4e35] hover:from-[#4e7255] hover:to-[#21422b] text-white px-8 py-[13px] rounded-full text-[13px] font-mono shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.45),_0_6px_12px_rgba(22,51,35,0.3)] border-[2.5px] border-[#1a3825] transition-all flex items-center justify-center font-medium tracking-wide">
                 Start Scanning for Free
-              </Link>
+              </button>
               <a href="#how-it-works" className="border-[1.5px] border-[#9fb3a5] text-[#163323] bg-transparent hover:bg-white/40 px-8 py-[13px] rounded-full text-[13px] font-mono font-medium transition-colors">
                 See How It Works
               </a>
@@ -94,7 +131,7 @@ export default function LandingPage() {
       </main>
 
       {/* Problem Section */}
-      <section className="w-full bg-white relative z-10 flex flex-col pt-20 pb-20">
+      <section id="problem" className="w-full bg-white relative z-10 flex flex-col pt-20 pb-20">
         
         {/* Top text part */}
         <div className="flex flex-col lg:flex-row justify-between items-start gap-12 mb-16 px-6 lg:px-12 w-full">
@@ -148,7 +185,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="w-full bg-[#163323] relative z-10 flex flex-col pt-20 pb-20">
+      <section id="how-it-works" className="w-full bg-[#163323] relative z-10 flex flex-col pt-20 pb-20">
         
         {/* Top text part */}
         <div className="flex flex-col mb-16 px-6 lg:px-12 w-full">
@@ -202,7 +239,7 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section className="w-full bg-white relative z-10 flex flex-col pt-20 pb-20">
+      <section id="features" className="w-full bg-white relative z-10 flex flex-col pt-20 pb-20">
         
         {/* Top text part & Button */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-12 mb-16 px-6 lg:px-12 w-full">
@@ -217,9 +254,9 @@ export default function LandingPage() {
           </div>
           
           <div className="lg:w-[50%] flex justify-start lg:justify-end pb-3">
-            <Link to="/features" className="bg-gradient-to-b from-[#5c8263] to-[#2a4e35] hover:from-[#4e7255] hover:to-[#21422b] text-white px-8 py-[13px] rounded-full text-[13px] font-mono shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.45),_0_6px_12px_rgba(22,51,35,0.3)] border-[2.5px] border-[#1a3825] transition-all flex items-center justify-center font-medium tracking-wide">
+            <button onClick={() => setIsAuthModalOpen(true)} className="bg-gradient-to-b from-[#5c8263] to-[#2a4e35] hover:from-[#4e7255] hover:to-[#21422b] text-white px-8 py-[13px] rounded-full text-[13px] font-mono shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.45),_0_6px_12px_rgba(22,51,35,0.3)] border-[2.5px] border-[#1a3825] transition-all flex items-center justify-center font-medium tracking-wide">
               See All Features
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -342,23 +379,27 @@ export default function LandingPage() {
           <p className="text-[12px] md:text-[14px] font-mono text-[#F6F4EB]/80 leading-relaxed tracking-wide max-w-[500px] mb-6">
             Join thousands of users who are eating safer, smarter,<br className="hidden md:block"/> and healthier every day with Truebite.
           </p>
-          <Link to="/register" className="bg-gradient-to-b from-[#5c8263] to-[#2a4e35] hover:from-[#4e7255] hover:to-[#21422b] text-white px-8 py-[13px] rounded-full text-[13px] font-mono shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.45),_0_6px_12px_rgba(22,51,35,0.3)] border-[2.5px] border-[#1a3825] transition-all flex items-center justify-center font-medium tracking-wide">
+          <button onClick={() => setIsAuthModalOpen(true)} className="bg-gradient-to-b from-[#5c8263] to-[#2a4e35] hover:from-[#4e7255] hover:to-[#21422b] text-white px-8 py-[13px] rounded-full text-[13px] font-mono shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.45),_0_6px_12px_rgba(22,51,35,0.3)] border-[2.5px] border-[#1a3825] transition-all flex items-center justify-center font-medium tracking-wide">
             Create Your Free Account
-          </Link>
+          </button>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="w-full bg-white border-t border-[#163323]/10 px-6 lg:px-12 py-10 flex flex-col md:flex-row justify-between items-center gap-6">
+      <footer className="w-full bg-white rounded-b-[32px] border-t border-[#163323]/10 px-6 lg:px-12 py-10 flex flex-col md:flex-row justify-between items-center gap-6">
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="TrueBite Logo" className="w-7 h-7 md:w-9 md:h-9" />
+          <img src="/logo.png?v=2" alt="TrueBite Logo" className="w-7 h-7 md:w-9 md:h-9" />
           <span className="text-xl md:text-[22px] font-bold text-[#163323] tracking-tight" style={{ fontFamily: "'DM Sans', sans-serif" }}>Truebite</span>
         </div>
         <div className="text-[12px] md:text-[13px] font-mono text-[#163323]/60 tracking-wide">
           © 2026 Truebite. All rights reserved.
         </div>
       </footer>
-
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+        defaultView="signup"
+      />
     </div>
   );
 }

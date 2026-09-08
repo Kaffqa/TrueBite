@@ -41,7 +41,7 @@ export function NutritionProvider({ children }: { children: ReactNode }) {
         .select('*')
         .eq('user_id', user.id)
         .eq('summary_date', today)
-        .single();
+        .maybeSingle();
         
       setTodaySummary(summaryData);
 

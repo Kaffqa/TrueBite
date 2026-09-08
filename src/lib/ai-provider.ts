@@ -45,3 +45,14 @@ export async function analyzeFood(
   const provider = getAIProvider();
   return provider.analyzeFood(imageBase64, userProfile);
 }
+
+/**
+ * Convenience function: analyze text description using the configured AI provider.
+ */
+export async function analyzeText(
+  description: string,
+  userProfile: UserHealthProfile
+): Promise<FoodAnalysisResult> {
+  const provider = getAIProvider();
+  return provider.analyzeText(description, userProfile);
+}

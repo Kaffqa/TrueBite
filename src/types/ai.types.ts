@@ -91,4 +91,5 @@ export interface UserHealthProfile {
 export interface AIProvider {
   name: string;
   analyzeFood(imageBase64: string, userProfile: UserHealthProfile): Promise<FoodAnalysisResult>;
+  analyzeText(description: string, userProfile: UserHealthProfile): Promise<FoodAnalysisResult>;
 }

@@ -85,4 +85,8 @@ export class GroqProvider implements AIProvider {
       throw new Error(`Failed to analyze food with Groq: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
+
+  async analyzeText(description: string, userProfile: UserHealthProfile): Promise<FoodAnalysisResult> {
+    throw new Error('Text analysis is not implemented for Groq yet.');
+  }
 }
