@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { CaretLeft, ShieldCheck, Warning, ShieldWarning, Info, PlusCircle, CheckCircle } from '@phosphor-icons/react';
+import { CaretLeft, ShieldCheck, Warning, ShieldWarning, Info, PlusCircle, CheckCircle, X, MagnifyingGlassPlus } from '@phosphor-icons/react';
 import { Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, formatDistanceToNow, isToday } from 'date-fns';
@@ -19,6 +19,7 @@ export default function ScanResultPage() {
   const [scanItems, setScanItems] = useState<any[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [logStatus, setLogStatus] = useState<'idle' | 'logging' | 'success'>('idle');
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchScanData = async () => {
@@ -27,7 +28,7 @@ export default function ScanResultPage() {
         setLoading(true);
         const { data: scanData, error: scanError } = await supabase
           .from('food_scans')
-          .select('*')
+          .select('*, meal_logs(*)')
           .eq('id', id)
           .single();
 
@@ -51,6 +52,10 @@ export default function ScanResultPage() {
 
     fetchScanData();
   }, [id]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleManualLog = async () => {
     try {
@@ -109,6 +114,8 @@ export default function ScanResultPage() {
   }
 
   const isSafe = scanRecord.safety_status === 'safe';
+  const isAlreadyLogged = scanRecord.meal_logs && scanRecord.meal_logs.length > 0;
+  const shouldShowLoggedState = isAlreadyLogged || logStatus === 'success' || (isSafe && logStatus !== 'idle');
 
   const safetyConfig: Record<string, { bg: string; text: string; label: string; icon: any; border: string }> = {
     safe: { bg: 'bg-[#bbf7d0]', text: 'text-[#166534]', border: 'border-[#4ade80]/30', label: 'Safe', icon: ShieldCheck },
@@ -123,30 +130,42 @@ export default function ScanResultPage() {
     <motion.div 
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }}
-      className="w-full min-h-screen bg-[#f4f7f5] p-6 pb-24"
+      className="pb-24"
     >
-      <div className="max-w-[1100px] mx-auto">
+      <div>
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4 mb-6 pt-2">
           <button 
             onClick={() => navigate('/app/history')} 
             className="p-2.5 rounded-[4px] border border-[#e8efe9] bg-white hover:bg-[#f0f5f2] transition-colors"
           >
             <CaretLeft className="w-5 h-5 text-[#1e4832]" weight="bold" />
           </button>
-          <h1 className="font-serif text-[24px] text-[#1e4832]">Scan Results</h1>
+          <h1 className="font-serif text-[28px] text-[#1e4832] italic">Scan Results</h1>
         </div>
 
         {/* Bento Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
           
           {/* Left Column */}
-          <div className="lg:col-span-7 flex flex-col gap-6">
+          <div className="lg:col-span-8 flex flex-col gap-5">
             {/* Main Image & Overview */}
             <div className="bg-white rounded-[4px] border border-[#e8efe9] shadow-sm overflow-hidden flex flex-col">
               {scanRecord.image_url && (
-                <div className="w-full h-64 lg:h-72 relative border-b border-[#e8efe9]">
-                  <img src={scanRecord.image_url} alt="Scanned Food" className="w-full h-full object-cover" />
+                <div 
+                  className="w-full h-64 lg:h-80 relative border-b border-[#e8efe9] cursor-pointer group"
+                  onClick={() => setIsImageModalOpen(true)}
+                >
+                  <img 
+                    src={scanRecord.image_url} 
+                    alt="Scanned Food" 
+                    className="w-full h-full object-cover group-hover:scale-[1.02] transition-transform duration-500" 
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity transform scale-90 group-hover:scale-100 duration-300">
+                      <MagnifyingGlassPlus size={24} className="text-white" weight="bold" />
+                    </div>
+                  </div>
                 </div>
               )}
               
@@ -203,17 +222,19 @@ export default function ScanResultPage() {
           </div>
 
           {/* Right Column */}
-          <div className="lg:col-span-5 flex flex-col gap-6">
+          <div className="lg:col-span-4 flex flex-col gap-5">
             {/* Action Area (Moved up for Bento emphasis) */}
             <div className="bg-white rounded-[4px] border border-[#e8efe9] shadow-sm p-6 lg:p-8">
-              {isSafe ? (
-                <div className="flex items-center gap-4 justify-center py-2">
-                  <div className="w-10 h-10 rounded-[4px] bg-[#bbf7d0] flex items-center justify-center">
-                    <CheckCircle className="w-5 h-5 text-[#166534]" weight="bold" />
-                  </div>
-                  <div>
-                    <p className="font-serif text-[16px] text-[#1e4832]">Automatically Logged</p>
-                    <p className="font-mono text-[10px] capitalize tracking-wider text-[#8ba797]">Added to today's meal journal</p>
+              {shouldShowLoggedState ? (
+                <div className="flex flex-col items-center gap-4">
+                  <p className="font-mono text-[12px] text-[#166534] text-center max-w-sm">
+                    {isSafe && !isAlreadyLogged && logStatus !== 'success' 
+                      ? "This meal was deemed safe and has been automatically logged." 
+                      : "This meal has already been logged to your journal."}
+                  </p>
+                  <div className="w-full py-4 rounded-[4px] bg-[#f0f5f2] border border-[#c5d1c9] text-[#166534] font-mono font-bold text-[13px] flex justify-center items-center gap-2">
+                    <CheckCircle className="w-5 h-5" weight="fill" />
+                    {isSafe && !isAlreadyLogged && logStatus !== 'success' ? 'Automatically Logged' : 'Already Logged'}
                   </div>
                 </div>
               ) : (
@@ -230,8 +251,6 @@ export default function ScanResultPage() {
                   >
                     {logStatus === 'logging' ? (
                       <><Loader2 className="w-4 h-4 animate-spin" /> Logging...</>
-                    ) : logStatus === 'success' ? (
-                      <><CheckCircle className="w-4 h-4" weight="bold" /> Logged Successfully!</>
                     ) : (
                       <><PlusCircle className="w-4 h-4" weight="bold" /> Log Anyway</>
                     )}
@@ -305,6 +324,33 @@ export default function ScanResultPage() {
           </div>
         </div>
       </div>
+
+      {/* Image Modal */}
+      {isImageModalOpen && scanRecord.image_url && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          onClick={() => setIsImageModalOpen(false)}
+        >
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative max-w-3xl max-h-[75vh] flex flex-col items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button 
+              onClick={() => setIsImageModalOpen(false)}
+              className="absolute -top-12 right-0 p-2 text-white hover:text-gray-300 transition-colors bg-black/40 rounded-full"
+            >
+              <X size={24} weight="bold" />
+            </button>
+            <img 
+              src={scanRecord.image_url} 
+              alt="Full screen scan" 
+              className="w-auto h-auto max-w-full max-h-[75vh] object-contain rounded-[4px] shadow-2xl"
+            />
+          </motion.div>
+        </div>
+      )}
     </motion.div>
   );
 }

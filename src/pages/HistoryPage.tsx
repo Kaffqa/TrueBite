@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format, startOfDay, endOfDay, isToday as isTodayFn } from 'date-fns';
-import { Scan as PhosphorScan, CalendarBlank, CheckCircle, Warning, WarningCircle, CaretDown, Plus, X, MagicWand } from '@phosphor-icons/react';
+import { Scan as PhosphorScan, CalendarBlank, CheckCircle, Warning, WarningCircle, CaretDown, Plus, X, MagicWand, ShieldCheck, ShieldWarning } from '@phosphor-icons/react';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useScanHistory } from '@/hooks/useScanHistory';
@@ -31,9 +31,9 @@ const getSafetyBadgeStyle = (status: string) => {
 
 const getSafetyIcon = (status: string) => {
   switch (status) {
-    case 'safe': return <CheckCircle size={14} weight="fill" />;
+    case 'safe': return <ShieldCheck size={14} weight="fill" />;
     case 'caution': return <Warning size={14} weight="fill" />;
-    case 'danger': return <WarningCircle size={14} weight="fill" />;
+    case 'danger': return <ShieldWarning size={14} weight="fill" />;
     default: return null;
   }
 };
@@ -300,11 +300,11 @@ export function HistoryPage() {
                   className="flex items-center gap-4 py-3.5 hover:bg-[#fafcfb] -mx-2 px-2 rounded-[4px] transition-colors cursor-pointer group"
                 >
                   {/* Food Thumbnail */}
-                  <div className="w-10 h-10 rounded-[4px] bg-[#f0f5f2] border border-[#e8efe9] flex items-center justify-center shrink-0 overflow-hidden">
+                  <div className="w-10 h-10 rounded-[4px] flex items-center justify-center shrink-0 overflow-hidden">
                     {scan.image_url ? (
                       <img src={scan.image_url} alt="" className="w-full h-full object-cover rounded-[4px]" />
                     ) : (
-                      <AppleEmoji emoji={guessEmoji(scan.meal_title || '')} className="w-5 h-5" />
+                      <AppleEmoji emoji={guessEmoji(scan.meal_title || '')} className="w-6 h-6" />
                     )}
                   </div>
 
@@ -328,8 +328,7 @@ export function HistoryPage() {
 
                   <div className="flex items-center gap-2 shrink-0">
                     {/* Logged Badge */}
-                    <div className={`px-4 py-1.5 rounded-[4px] border flex items-center justify-center gap-1.5 font-mono text-[11px] font-bold ${isLogged ? 'bg-[#f0f5f2] text-[#166534] border-[#c5d1c9]' : 'bg-white text-[#8ba797] border-[#e8efe9]'}`} style={{ minWidth: '96px' }}>
-                      {isLogged ? <CheckCircle size={14} weight="fill" /> : <CalendarBlank size={14} weight="bold" />}
+                    <div className={`px-4 py-1.5 rounded-[4px] border flex items-center justify-center font-mono text-[11px] font-bold ${isLogged ? 'bg-[#f0f5f2] text-[#166534] border-[#c5d1c9]' : 'bg-white text-[#8ba797] border-[#e8efe9]'}`} style={{ minWidth: '96px' }}>
                       {isLogged ? 'Logged' : 'Not Logged'}
                     </div>
 

@@ -11,6 +11,7 @@ import ScannerPage from '@/pages/ScannerPage';
 import ScanResultPage from '@/pages/ScanResultPage';
 import HistoryPage from '@/pages/HistoryPage';
 import SettingsPage from '@/pages/SettingsPage';
+import IngredientsPage from '@/pages/IngredientsPage';
 import AppShell from '@/components/layout/AppShell';
 
 export default function App() {
@@ -31,6 +32,7 @@ export default function App() {
             <Route path="scan" element={<ScannerPage />} />
             <Route path="scan/:id" element={<ScanResultPage />} />
             <Route path="history" element={<HistoryPage />} />
+            <Route path="ingredients" element={<IngredientsPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Route>
