@@ -2,7 +2,7 @@ import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format, startOfDay, endOfDay, isToday as isTodayFn } from 'date-fns';
-import { Scan as PhosphorScan, CalendarBlank, CheckCircle, Warning, WarningCircle, CaretDown, Plus, X, MagicWand, ShieldCheck, ShieldWarning } from '@phosphor-icons/react';
+import { Scan as PhosphorScan, CalendarBlank, CheckCircle, Warning, WarningCircle, CaretDown, Plus, X, MagicWand, ShieldCheck, ShieldWarning, Lightning, Fire, FireSimple } from '@phosphor-icons/react';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useScanHistory } from '@/hooks/useScanHistory';
@@ -82,10 +82,59 @@ export function HistoryPage() {
   const [consumedTime, setConsumedTime] = useState(format(new Date(), 'HH:mm'));
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   
+  const [streakData, setStreakData] = useState<any[]>([]);
+  const [streakCount, setStreakCount] = useState<number>(0);
+  
   const { scans, setFilter } = useScanHistory(100, {
     startDate: startOfDay(new Date()).toISOString(),
     endDate: endOfDay(new Date()).toISOString()
   });
+
+  useEffect(() => {
+    async function fetchStreak() {
+      if (!user) return;
+      
+      const { data: history } = await supabase
+        .from('food_scans')
+        .select('created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      let currentStreak = 0;
+      let scanDays = new Set<number>();
+      
+      if (history && history.length > 0) {
+        scanDays = new Set(history.map((s: any) => startOfDay(new Date(s.created_at)).getTime()));
+        const today = startOfDay(new Date()).getTime();
+        const yesterday = today - 86400000;
+
+        if (scanDays.has(today) || scanDays.has(yesterday)) {
+          let checkTime = scanDays.has(today) ? today : yesterday;
+          while (scanDays.has(checkTime)) {
+            currentStreak++;
+            checkTime -= 86400000;
+          }
+        }
+      }
+      setStreakCount(currentStreak);
+
+      // Generate the last 7 days for the UI
+      const todayTime = startOfDay(new Date()).getTime();
+      const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+      const streakArr = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(todayTime - i * 86400000);
+        streakArr.push({
+          day: dayNames[d.getDay()],
+          date: d.getDate().toString(),
+          active: scanDays.has(d.getTime()),
+          today: i === 0
+        });
+      }
+      setStreakData(streakArr);
+    }
+    fetchStreak();
+  }, [user]);
 
   useEffect(() => {
     setFilter({ 
@@ -263,7 +312,7 @@ export function HistoryPage() {
           </div>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
-              <AppleEmoji emoji="🔥" className="w-4 h-4" />
+              <Lightning size={18} weight="fill" style={{ fill: 'url(#lightning-grad-history)' }} className="-mt-0.5" />
               <span className="font-mono text-[13px] font-bold text-[#1e4832]">{Math.round(totalCals)} kcal</span>
             </div>
             <button 
@@ -360,48 +409,86 @@ export function HistoryPage() {
       className="pb-24"
     >
       {/* Header Card - blocky with background */}
-      <div className="bg-white rounded-[4px] border border-[#e8efe9] shadow-sm p-6 mb-5">
-        {/* Title Row */}
-        <div className="flex items-center justify-between mb-5">
-          <h1 className="text-[32px] font-serif text-[#1e4832] leading-none">Daily Journal</h1>
-          <div className="flex items-center gap-3">
-            <div 
-              className="flex items-center gap-2 cursor-pointer px-4 py-2.5 bg-white border border-[#e8efe9] rounded-[4px] shadow-sm hover:shadow-md transition-shadow"
-              onClick={() => dateInputRef.current?.showPicker()}
-            >
-              <CalendarBlank size={16} className="text-[#1a3825]" weight="fill" />
-              <span className="font-mono text-[12px] text-[#1e4832] tracking-wide">
-                {dateLabel}{format(selectedDate, 'MMMM dd, yyyy')}
+      <div className="bg-white rounded-[4px] border border-[#e8efe9] shadow-sm p-6 lg:p-8 mb-5 flex flex-col md:flex-row justify-between gap-8 md:gap-8">
+        
+        {/* Left Side: Title and Calories */}
+        <div className="flex flex-col flex-1 w-full justify-between pr-0 md:pr-12">
+          <h1 className="text-[32px] font-serif text-[#1e4832] leading-none mb-8">Daily Journal</h1>
+          
+          {/* Calorie Summary */}
+          <div className="relative w-full">
+            <svg width="0" height="0" className="absolute">
+              <linearGradient id="lightning-grad-history" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop stopColor="#e55941" offset="0%" />
+                <stop stopColor="#e68846" offset="50%" />
+                <stop stopColor="#e7ac4b" offset="100%" />
+              </linearGradient>
+              <linearGradient id="fire-grad-history" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop stopColor="#fde047" offset="0%" />
+                <stop stopColor="#f97316" offset="50%" />
+                <stop stopColor="#ea580c" offset="100%" />
+              </linearGradient>
+            </svg>
+            <div className="flex items-center gap-2 mb-3">
+              <Lightning size={20} weight="fill" style={{ fill: 'url(#lightning-grad-history)' }} className="mr-0.5 -mt-0.5" />
+              <span className="font-mono font-bold text-[14px] text-[#1e4832]">
+                {currentCals} of {targetCals} kcal consumed
               </span>
-              <CaretDown size={14} className="text-[#6b8274]" weight="bold" />
-              <input 
-                ref={dateInputRef}
-                type="date" 
-                className="sr-only"
-                value={format(selectedDate, 'yyyy-MM-dd')}
-                onChange={handleDateChange}
+            </div>
+            <div className="w-full h-2 bg-[#e8efe9] rounded-[4px] overflow-hidden mb-3">
+              <div 
+                className="h-full bg-[#1a3825] rounded-[4px] transition-all duration-1000 ease-out" 
+                style={{ width: `${progressPercent}%` }}
               />
             </div>
+            <p className="font-mono text-[11px] text-[#8ba797] italic">
+              Every scan lands here automatically. Adjust a portion and the calories update with it.
+            </p>
           </div>
         </div>
 
-        {/* Calorie Summary */}
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <AppleEmoji emoji="🔥" className="w-5 h-5" />
-            <span className="font-mono font-bold text-[14px] text-[#1e4832]">
-              {currentCals} of {targetCals} kcal consumed
+        {/* Right Side: Date Picker and Streak */}
+        <div className="flex flex-col items-center md:items-end justify-between gap-8 shrink-0">
+          <div 
+            className="flex items-center gap-2 cursor-pointer px-4 py-2 bg-white border border-[#c5d1c9] rounded-[4px] shadow-sm hover:shadow-md transition-shadow w-full md:w-auto justify-center"
+            onClick={() => dateInputRef.current?.showPicker()}
+          >
+            <CalendarBlank size={16} className="text-[#1a3825]" weight="fill" />
+            <span className="font-mono text-[12px] text-[#1e4832] tracking-wide whitespace-nowrap">
+              {dateLabel}{format(selectedDate, 'MMMM dd, yyyy')}
             </span>
-          </div>
-          <div className="w-full h-2 bg-[#e8efe9] rounded-[4px] overflow-hidden mb-3">
-            <div 
-              className="h-full bg-[#1a3825] rounded-[4px] transition-all duration-1000 ease-out" 
-              style={{ width: `${progressPercent}%` }}
+            <CaretDown size={14} className="text-[#6b8274]" weight="bold" />
+            <input 
+              ref={dateInputRef}
+              type="date" 
+              className="sr-only"
+              value={format(selectedDate, 'yyyy-MM-dd')}
+              onChange={handleDateChange}
             />
           </div>
-          <p className="font-mono text-[11px] text-[#8ba797] italic">
-            Every scan lands here automatically. Adjust a portion and the calories update with it.
-          </p>
+
+          <div className="flex flex-col items-center w-full max-w-[260px]">
+            <div className="flex items-center justify-center gap-2 mb-5">
+              <FireSimple size={26} weight="fill" style={{ fill: 'url(#fire-grad-history)' }} className="-mt-1" />
+              <span className="font-serif text-[22px] text-[#1e4832]">{streakCount} Days Streak</span>
+            </div>
+            
+            <div className="flex justify-between w-full">
+              {streakData.map((d, i) => (
+                <div key={i} className="flex flex-col items-center gap-1.5">
+                  <span className={`text-[11px] font-sans ${d.today ? 'font-bold text-[#1e4832]' : 'text-[#8ba797]'}`}>{d.day}</span>
+                  <span className={`text-[11px] font-sans ${d.today ? 'font-bold text-[#1e4832]' : 'text-[#a4b5aa]'}`}>{d.date}</span>
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${d.active ? 'bg-[#2a2d2a]' : 'bg-[#3b473f]'}`}>
+                    {d.active ? (
+                      <FireSimple size={16} weight="fill" style={{ fill: 'url(#fire-grad-history)' }} />
+                    ) : (
+                      <FireSimple size={16} weight="fill" className="text-[#64746b]" />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 

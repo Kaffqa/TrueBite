@@ -80,14 +80,28 @@ const DailySummaryCard = ({ profile, todaySummary }: any) => {
   const carbsPct = Math.min(carbs / targetCarbs, 1) * 100;
   const fatPct = Math.min(fat / targetFat, 1) * 100;
 
-  // Donut chart calculations
-  const radius = 38;
-  const circumference = 2 * Math.PI * radius; // ~238.76
-  const gap = 24;
-  const greenArcLen = Math.max(0, (circumference * consumedPct) - gap);
-  const grayArcLen = Math.max(0, (circumference * (1 - consumedPct)) - gap);
-  const grayOffset = grayArcLen / 2;
-  const greenOffset = -(circumference / 2 - greenArcLen / 2);
+  const strokeW = 18;
+  const radius = 36;
+  const circumference = 2 * Math.PI * radius; 
+  const gap = 8; // Flat gap between segments
+  
+  let greenArcLen = 0;
+  let grayArcLen = 0;
+  let greenOffset = 0;
+  let grayOffset = 0;
+
+  if (consumedPct <= 0) {
+    grayArcLen = circumference;
+  } else if (consumedPct >= 1) {
+    greenArcLen = circumference;
+  } else {
+    greenArcLen = Math.max(0.1, (circumference * consumedPct) - gap);
+    grayArcLen = Math.max(0.1, (circumference * (1 - consumedPct)) - gap);
+    
+    // Centering the gap at the top
+    greenOffset = -(gap / 2);
+    grayOffset = -(gap / 2 + greenArcLen + gap);
+  }
 
   const flagCount = todaySummary?.scan_count ? Math.max(0, (todaySummary?.scan_count || 0) - (todaySummary?.meal_count || 0)) : 0;
   const tip = getSmartTip(consumed, targetCalories, flagCount);
@@ -109,39 +123,44 @@ const DailySummaryCard = ({ profile, todaySummary }: any) => {
       <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
         {/* Donut Chart */}
         <div className="relative w-[200px] h-[200px] flex-shrink-0">
-          <svg viewBox="0 0 100 100" className="w-full h-full">
-             <defs>
-               <filter id="soft-corners" x="-20%" y="-20%" width="140%" height="140%">
-                 <feGaussianBlur in="SourceGraphic" stdDeviation="1.2" result="blur" />
-                 <feComponentTransfer in="blur">
-                   <feFuncA type="linear" slope="50" intercept="-24.5" />
-                 </feComponentTransfer>
-               </filter>
-             </defs>
-             <g filter="url(#soft-corners)">
-               {/* Gray (Remaining) */}
-               <circle 
-                 cx="50" cy="50" r={radius} 
-                 fill="none" 
-                 stroke="#e8efe9" 
-                 strokeWidth="18" 
-                 strokeLinecap="butt"
-                 strokeDasharray={`${grayArcLen} ${circumference - grayArcLen}`}
-                 strokeDashoffset={grayOffset} 
-               />
-               {/* Dark Green (Consumed) */}
-               {consumed > 0 && (
-                 <circle 
-                   cx="50" cy="50" r={radius} 
-                   fill="none" 
-                   stroke="#1a3825" 
-                   strokeWidth="18" 
-                   strokeLinecap="butt"
-                   strokeDasharray={`${greenArcLen} ${circumference - greenArcLen}`}
-                   strokeDashoffset={greenOffset} 
-                 />
-               )}
-             </g>
+          <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90 overflow-visible">
+               <defs>
+                 <filter id="soft-rounded" x="-30%" y="-30%" width="160%" height="160%">
+                   <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur" />
+                   <feColorMatrix in="blur" mode="matrix" values="
+                     1 0 0 0 0
+                     0 1 0 0 0
+                     0 0 1 0 0
+                     0 0 0 15 -6
+                   " />
+                 </filter>
+               </defs>
+               <g filter="url(#soft-rounded)">
+                 {/* Gray (Remaining) */}
+                 {grayArcLen > 0 && (
+                   <circle 
+                     cx="50" cy="50" r={radius} 
+                     fill="none" 
+                     stroke="#e8efe9" 
+                     strokeWidth={strokeW} 
+                     strokeLinecap="butt"
+                     strokeDasharray={`${grayArcLen} ${circumference}`}
+                     strokeDashoffset={grayOffset} 
+                   />
+                 )}
+                 {/* Dark Green (Consumed) */}
+                 {greenArcLen > 0 && (
+                   <circle 
+                     cx="50" cy="50" r={radius} 
+                     fill="none" 
+                     stroke="#1a3825" 
+                     strokeWidth={strokeW} 
+                     strokeLinecap="butt"
+                     strokeDasharray={`${greenArcLen} ${circumference}`}
+                     strokeDashoffset={greenOffset} 
+                   />
+                 )}
+               </g>
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-[42px] font-serif text-[#1e4832] leading-none">{remaining}</span>
@@ -277,10 +296,16 @@ const RecentScansCard = ({ scans, loading }: { scans: any[], loading: boolean })
               <div 
                 key={scan.id} 
                 onClick={() => navigate(`/app/scan/${scan.id}`)}
-                className={`py-5 flex justify-between items-center cursor-pointer hover:bg-[#f7f9f8] -mx-2 px-2 rounded-xl transition-colors ${idx < Math.min(scans.length, 4) - 1 ? 'border-b border-[#e8efe9]' : ''}`}
+                className={`py-5 flex justify-between items-center cursor-pointer hover:bg-[#f0f5f2] -mx-3 px-3 rounded-[4px] transition-colors ${idx < Math.min(scans.length, 4) - 1 ? 'border-b border-[#e8efe9]' : ''}`}
               >
                 <div className="flex items-center gap-4">
-                  <AppleEmoji emoji={emoji} className="w-8 h-8" />
+                  <div className="w-10 h-10 rounded-[4px] flex items-center justify-center shrink-0 overflow-hidden bg-[#f7f9f8]">
+                    {scan.image_url ? (
+                      <img src={scan.image_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <AppleEmoji emoji={emoji} className="w-7 h-7" />
+                    )}
+                  </div>
                   <div>
                     <div className="font-serif text-[#1e4832] mb-1 text-[15px]">{scan.meal_title || 'Unknown Meal'}</div>
                     <div className="font-mono text-[10px] text-[#8ba797] flex gap-3">
@@ -303,8 +328,7 @@ const RecentScansCard = ({ scans, loading }: { scans: any[], loading: boolean })
   );
 };
 
-const ScannerActionCard = ({ scanCount, flagCount }: { scanCount: number, flagCount: number }) => {
-  // Count flags from scans
+const ScannerActionCard = ({ scanCount, flagCount, streakDays }: { scanCount: number, flagCount: number, streakDays: number }) => {
   return (
     <div className="bg-[#1a3825] rounded-[4px] p-6 lg:p-8 shadow-md flex flex-col justify-between">
       <div>
@@ -329,7 +353,7 @@ const ScannerActionCard = ({ scanCount, flagCount }: { scanCount: number, flagCo
           <span className="text-[10px] font-mono text-[#6b8274] uppercase tracking-widest">Flags</span>
         </div>
         <div className="bg-[#122b1e] rounded-[4px] py-4 flex flex-col items-center justify-center border border-[#1a3825]">
-          <span className="text-3xl font-serif text-white mb-1">1W</span>
+          <span className="text-3xl font-serif text-white mb-1">{streakDays}D</span>
           <span className="text-[10px] font-mono text-[#6b8274] uppercase tracking-widest">Streak</span>
         </div>
       </div>
@@ -491,6 +515,7 @@ export default function DashboardPage() {
 
   const [totalScans, setTotalScans] = React.useState(0);
   const [totalFlags, setTotalFlags] = React.useState(0);
+  const [streakDays, setStreakDays] = React.useState(0);
 
   React.useEffect(() => {
     async function fetchStats() {
@@ -509,6 +534,36 @@ export default function DashboardPage() {
         
       if (scansCount !== null) setTotalScans(scansCount);
       if (flagsCount !== null) setTotalFlags(flagsCount);
+
+      // Calculate streak
+      const { data: history } = await supabase
+        .from('food_scans')
+        .select('created_at')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (history && history.length > 0) {
+        let currentStreak = 0;
+        let checkDate = startOfDay(new Date());
+        
+        // Extract unique days (midnight timestamps) where scans occurred
+        const scanDays = new Set(
+          history.map((s: any) => startOfDay(new Date(s.created_at)).getTime())
+        );
+
+        // Check if there's a scan today or yesterday to start the streak
+        const today = checkDate.getTime();
+        const yesterday = today - 86400000;
+
+        if (scanDays.has(today) || scanDays.has(yesterday)) {
+          let checkTime = scanDays.has(today) ? today : yesterday;
+          while (scanDays.has(checkTime)) {
+            currentStreak++;
+            checkTime -= 86400000; // go back 1 day
+          }
+        }
+        setStreakDays(currentStreak);
+      }
     }
     fetchStats();
   }, [user]);
@@ -528,7 +583,7 @@ export default function DashboardPage() {
 
         {/* Right Column */}
         <div className="lg:col-span-5 flex flex-col gap-6">
-          <ScannerActionCard scanCount={totalScans} flagCount={totalFlags} />
+          <ScannerActionCard scanCount={totalScans} flagCount={totalFlags} streakDays={streakDays} />
           <IngredientOfDayWidget user={user} profile={profile} />
         </div>
       </div>

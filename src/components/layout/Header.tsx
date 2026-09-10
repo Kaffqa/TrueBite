@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { User, Bell, Search } from 'lucide-react';
 
 export default function Header() {
   const { profile } = useProfile();
+  const [imgError, setImgError] = useState(false);
 
   return (
     <header className="h-16 flex items-center justify-between px-6 bg-white sticky top-0 z-40 border-b border-[#e8efe9]">
@@ -27,8 +28,13 @@ export default function Header() {
           <Bell className="w-4 h-4" />
         </button>
         <div className="w-8 h-8 rounded-[2px] bg-[#e8efe9] flex items-center justify-center overflow-hidden border border-[#c5d1c9] shadow-sm">
-          {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt="User" className="w-full h-full object-cover" />
+          {profile?.avatar_url && !imgError ? (
+            <img 
+              src={profile.avatar_url} 
+              alt="User" 
+              className="w-full h-full object-cover"
+              onError={() => setImgError(true)}
+            />
           ) : (
             <User className="w-4 h-4 text-[#6b8274]" />
           )}
