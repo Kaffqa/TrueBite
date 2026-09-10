@@ -150,3 +150,64 @@ export const FOOD_ANALYSIS_SCHEMA = {
   },
   required: ["scanType", "mealTitle", "safetyStatus", "healthWarnings", "items", "totalNutrition"]
 };
+
+export function buildIngredientsSystemPrompt(profile: UserHealthProfile): string {
+  const allergies = profile.allergies?.length ? profile.allergies.join(', ') : 'None specified';
+  const intolerances = profile.intolerances?.length ? profile.intolerances.join(', ') : 'None specified';
+  const conditions = profile.medicalConditions?.length ? profile.medicalConditions.join(', ') : 'None specified';
+  const diet = profile.dietaryPreferences?.length ? profile.dietaryPreferences.join(', ') : 'None specified';
+
+  return `You are an expert nutritionist and food scientist. Generate a personalized list of food ingredients/additives that are specifically relevant to this user's health profile.
+
+User's Health Profile:
+- Allergies: ${allergies}
+- Intolerances: ${intolerances}
+- Medical Conditions: ${conditions}
+- Dietary Preferences: ${diet}
+
+Instructions:
+1. Generate 15-25 ingredients/additives that this user should know about based on their specific profile.
+2. For each allergen the user has, include the primary allergen ingredient AND 2-3 related/cross-reactive ingredients.
+3. For each medical condition, include ingredients that could worsen it AND safe alternatives.
+4. For dietary preferences (e.g., Halal, Vegan), include common non-compliant ingredients.
+5. Include some universally important additives (preservatives, colorings) with their E-numbers if applicable.
+6. Classify each as: "Safe" (no concern for this user), "Flagged" (potential concern, should be aware), or "Allergen" (direct match with user's allergies/conditions).
+7. Provide a clear reason WHY each ingredient has its status, referencing the user's specific profile.
+8. The 'description' MUST be comprehensive and educational (at least 2-3 full sentences). Explain what it is, how it is made, and its effects.
+9. For 'commonlyFoundIn', the 'icon' field MUST be exactly ONE single Unicode emoji character (e.g., 🥜, 🍪, 🥣). Do not use text for the icon.
+10. You MUST return ONLY valid JSON matching the exact schema provided. Do not include markdown formatting or extra text.
+`;
+}
+
+export const INGREDIENTS_GENERATION_SCHEMA = {
+  type: "object",
+  properties: {
+    ingredients: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          ingredientName: { type: "string" },
+          category: { type: "string" },
+          status: { type: "string", enum: ["Safe", "Flagged", "Allergen"] },
+          reason: { type: "string" },
+          description: { type: "string" },
+          commonlyFoundIn: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                icon: { type: "string" },
+                label: { type: "string" }
+              },
+              required: ["icon", "label"]
+            }
+          }
+        },
+        required: ["ingredientName", "category", "status", "reason", "description", "commonlyFoundIn"]
+      }
+    }
+  },
+  required: ["ingredients"]
+};
+

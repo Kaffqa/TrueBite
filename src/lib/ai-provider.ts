@@ -56,3 +56,30 @@ export async function analyzeText(
   const provider = getAIProvider();
   return provider.analyzeText(description, userProfile);
 }
+
+/**
+ * Convenience function: generate personalized ingredients using the configured AI provider.
+ */
+export async function generatePersonalIngredients(
+  userProfile: UserHealthProfile
+): Promise<any[]> {
+  const provider = getAIProvider() as any;
+  if (typeof provider.generateIngredients !== 'function') {
+    throw new Error(`Provider ${provider.name} does not support ingredient generation.`);
+  }
+  return provider.generateIngredients(userProfile);
+}
+
+/**
+ * Convenience function: enrich ingredients using the configured AI provider.
+ */
+export async function enrichIngredients(
+  ingredientNames: string[],
+  userProfile: UserHealthProfile
+): Promise<any[]> {
+  const provider = getAIProvider() as any;
+  if (typeof provider.enrichIngredients !== 'function') {
+    throw new Error(`Provider ${provider.name} does not support ingredient enrichment.`);
+  }
+  return provider.enrichIngredients(ingredientNames, userProfile);
+}

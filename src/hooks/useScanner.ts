@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNutrition } from '@/contexts/NutritionContext';
+import { useIngredients } from '@/hooks/useIngredients';
 import { compressImage, uploadScanImage, fileToBase64 } from '@/lib/storage';
 import { analyzeFood } from '@/lib/ai-provider';
 import { format } from 'date-fns';
@@ -25,6 +26,7 @@ const getMealType = (): MealType => {
 export function useScanner() {
   const { user, profile } = useAuth();
   const { addMealLog } = useNutrition();
+  const { syncFromScan } = useIngredients();
   
   const [scanState, setScanState] = useState<ScanState>('idle');
   const [result, setResult] = useState<FoodAnalysisResult | null>(null);
@@ -133,6 +135,14 @@ export function useScanner() {
           portion_multiplier: 1,
         };
         await addMealLog(logData);
+      }
+      
+      // Background sync ingredients
+      if (analysisResult.items && analysisResult.items.length > 0) {
+        // @ts-ignore
+        syncFromScan(analysisResult.items, scanData.id).catch(err => 
+          console.error('Failed to sync ingredients:', err)
+        );
       }
       
       // @ts-ignore

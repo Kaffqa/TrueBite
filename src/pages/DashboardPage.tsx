@@ -4,11 +4,12 @@ import { useNutrition } from '@/contexts/NutritionContext';
 import { useScanHistory } from '@/hooks/useScanHistory';
 import { motion } from 'framer-motion';
 import { ScanLine, Loader2 } from 'lucide-react';
-import { Scan as PhosphorScan, ShieldCheck, ShieldWarning, Warning } from '@phosphor-icons/react';
+import { Scan as PhosphorScan, ShieldCheck, ShieldWarning, Warning, Lightning } from '@phosphor-icons/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { format, formatDistanceToNow, startOfDay, endOfDay } from 'date-fns';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { getEmojiForIcon } from '@/lib/emoji-map';
 
 const AppleEmoji = ({ emoji, className = "w-4 h-4" }: { emoji: string, className?: string }) => {
   const codePoints = Array.from(emoji).map(c => c.codePointAt(0)?.toString(16));
@@ -149,9 +150,16 @@ const DailySummaryCard = ({ profile, todaySummary }: any) => {
         </div>
 
         {/* Macros */}
-        <div className="flex-1 flex flex-col justify-center w-full">
+        <div className="flex-1 flex flex-col justify-center w-full relative">
+          <svg width="0" height="0" className="absolute">
+            <linearGradient id="lightning-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop stopColor="#e55941" offset="0%" />
+              <stop stopColor="#e68846" offset="50%" />
+              <stop stopColor="#e7ac4b" offset="100%" />
+            </linearGradient>
+          </svg>
           <div className="flex items-center gap-2 mb-6 text-[#1e4832] font-semibold">
-            <AppleEmoji emoji="🔥" className="w-5 h-5 -mt-0.5" />
+            <Lightning size={22} weight="fill" style={{ fill: 'url(#lightning-grad)' }} className="mr-1 -mt-0.5" />
             <span className="font-serif text-[17px]">{consumed}</span> 
             <span className="font-mono text-xs">of {targetCalories} kcal consumed</span>
           </div>
@@ -329,41 +337,142 @@ const ScannerActionCard = ({ scanCount, flagCount }: { scanCount: number, flagCo
   );
 };
 
-const IngredientCard = () => {
+const IngredientOfDayWidget = ({ user, profile }: { user: any, profile: any }) => {
+  const navigate = useNavigate();
+  const [ingredient, setIngredient] = React.useState<any | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    async function fetchRandomIngredient() {
+      if (!user) return;
+      try {
+        const { data, error } = await supabase
+          .from('user_ingredients')
+          .select('*')
+          .eq('user_id', user.id)
+          .limit(50);
+          
+        if (data && data.length > 0) {
+          const interesting = data.filter((d: any) => d.status !== 'Safe');
+          const pool = interesting.length > 0 ? interesting : data;
+          
+          const todayInt = new Date().getDate();
+          const randomIndex = todayInt % pool.length;
+          setIngredient(pool[randomIndex]);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchRandomIngredient();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 lg:p-8 shadow-sm flex flex-col flex-1 items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-[#8ba797]" />
+      </div>
+    );
+  }
+
+  if (!ingredient) {
+    return (
+      <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 lg:p-8 shadow-sm flex flex-col flex-1 items-center justify-center text-center">
+        <h2 className="text-[20px] font-serif text-[#1e4832] mb-2">Build Your Dictionary</h2>
+        <p className="font-mono text-[12px] text-[#6b8274] mb-6 leading-relaxed">
+          Start scanning foods or generate your dictionary to see your daily ingredients here.
+        </p>
+        <button 
+          onClick={() => navigate('/app/ingredients')}
+          className="px-5 py-2 rounded-[4px] bg-[#1a3825] text-white font-mono text-[11px] hover:bg-[#254d35] transition-colors"
+        >
+          Go to Dictionary
+        </button>
+      </div>
+    );
+  }
+
+  const badgeIcon = ingredient.status === 'Allergen' ? '🛡️' : ingredient.status === 'Flagged' ? '⚠️' : '✅';
+
+  // Build dynamic dietary and medical tags based on the user's profile
+  const dietaryTags: { icon: string; label: string }[] = [];
+  if (profile?.dietary_preferences) {
+    profile.dietary_preferences.forEach((pref: string) => {
+      let icon = '🍽️';
+      if (pref.toLowerCase().includes('vegan')) icon = '🌿';
+      else if (pref.toLowerCase().includes('vegetarian')) icon = '🥗';
+      else if (pref.toLowerCase().includes('halal')) icon = '🕌';
+      else if (pref.toLowerCase().includes('keto')) icon = '🥑';
+      dietaryTags.push({ icon, label: pref });
+    });
+  }
+
+  // Highlight conflicting medical conditions if it's flagged
+  if (ingredient.status !== 'Safe' && profile?.medical_conditions) {
+    profile.medical_conditions.forEach((cond: string) => {
+      dietaryTags.push({ icon: '⚠️', label: cond });
+    });
+  }
+
   return (
     <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 lg:p-8 shadow-sm flex flex-col flex-1">
-      <div className="flex gap-3 items-start mb-6">
-        <AppleEmoji emoji="⚠️" className="w-8 h-8" />
+      <div className="flex gap-4 items-start mb-6">
+        <div className="text-4xl mt-1 leading-none">{badgeIcon}</div>
         <div>
-          <h2 className="text-[22px] font-serif text-[#1e4832]">E407 — Carrageenan</h2>
-          <p className="font-mono text-[11px] text-[#a0b0a6] mt-1 tracking-widest uppercase">Ingredient of the day</p>
+          <h2 className="text-[26px] font-serif text-[#1e4832] leading-tight">{ingredient.ingredient_name}</h2>
+          <p className="font-mono text-[12px] text-[#a0b0a6] mt-1">Ingredient of the day</p>
         </div>
       </div>
 
-      <p className="font-mono text-[13px] text-[#1e4832] font-semibold leading-relaxed mb-6">
-        A common thickener derived from red seaweed. While natural, it may trigger digestive discomfort and inflammation for sensitive stomachs.
+      <p className="font-mono text-[13px] text-[#4a6b58] leading-relaxed mb-6">
+        {ingredient.description || ingredient.reason || 'No specific description available for this ingredient.'}
       </p>
 
+      {ingredient.commonly_found_in && ingredient.commonly_found_in.length > 0 && (
+        <div className="mb-2">
+          <h3 className="font-mono text-[12px] text-[#4a6b58] mb-3">Commonly Found In:</h3>
+          <div className="flex flex-wrap items-center gap-2.5 font-mono text-[12px] text-[#5a7a68] font-medium">
+            {ingredient.commonly_found_in.slice(0, 3).map((item: any, i: number, arr: any[]) => (
+              <React.Fragment key={i}>
+                <span className="flex items-center gap-1.5">
+                   <span>{getEmojiForIcon(item.icon)}</span>
+                   {item.label}
+                </span>
+                {i < arr.length - 1 && <span className="text-[#cfdfd5]">|</span>}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <hr className="border-[#e8efe9] my-6" />
+
       <div className="mb-8">
-        <h3 className="font-mono text-[11px] text-[#6b8274] mb-3">Commonly Found In:</h3>
-        <div className="flex flex-wrap gap-4 font-mono text-[11px] text-[#6b8274] font-medium">
-          <span className="flex items-center gap-1.5"><AppleEmoji emoji="🥛" className="w-4 h-4" /> Plant milks</span>
-          <span className="flex items-center gap-1.5"><AppleEmoji emoji="🍦" className="w-4 h-4" /> Ice cream</span>
-          <span className="flex items-center gap-1.5"><AppleEmoji emoji="🥩" className="w-4 h-4" /> Processed Meats</span>
+        <h3 className="font-mono text-[12px] text-[#4a6b58] mb-3">Dietary Status:</h3>
+        <div className="flex flex-wrap items-center gap-2.5 font-mono text-[12px] font-medium">
+          {dietaryTags.length > 0 ? (
+            dietaryTags.map((item, i, arr) => (
+              <React.Fragment key={i}>
+                <span className={`flex items-center gap-1.5 ${item.icon === '⚠️' ? 'text-[#92400e]' : 'text-[#5a7a68]'}`}>
+                   <span>{item.icon}</span>
+                   {item.label}
+                </span>
+                {i < arr.length - 1 && <span className="text-[#cfdfd5]">|</span>}
+              </React.Fragment>
+            ))
+          ) : (
+            <span className="text-[#a0b0a6]">No specific dietary preferences set.</span>
+          )}
         </div>
       </div>
 
-      <div className="mb-8">
-        <h3 className="font-mono text-[11px] text-[#6b8274] mb-3">Dietary Status:</h3>
-        <div className="flex flex-wrap gap-4 font-mono text-[11px] font-semibold">
-          <span className="flex items-center gap-1.5 text-[#166534]"><AppleEmoji emoji="🌱" className="w-3.5 h-3.5" /> Vegan</span>
-          <span className="flex items-center gap-1.5 text-[#92400e]"><AppleEmoji emoji="🕌" className="w-3.5 h-3.5" /> Halal</span>
-          <span className="flex items-center gap-1.5 text-[#991b1b]"><AppleEmoji emoji="⚠️" className="w-3.5 h-3.5" /> Gut Sensitive</span>
-        </div>
-      </div>
-
-      <div className="mt-auto pt-4">
-        <button className="w-full py-3.5 rounded-[4px] border border-[#c5d1c9] text-[#1e4832] font-mono font-medium text-[13px] hover:bg-[#f0f5f2] transition-colors">
+      <div className="mt-auto">
+        <button 
+          onClick={() => navigate('/app/ingredients')}
+          className="w-full py-3.5 rounded-[4px] border border-[#cfdfd5] text-[#5a7a68] font-mono font-medium text-[13px] hover:bg-[#f0f5f2] transition-colors"
+        >
           Learn More in Dictionary
         </button>
       </div>
@@ -420,7 +529,7 @@ export default function DashboardPage() {
         {/* Right Column */}
         <div className="lg:col-span-5 flex flex-col gap-6">
           <ScannerActionCard scanCount={totalScans} flagCount={totalFlags} />
-          <IngredientCard />
+          <IngredientOfDayWidget user={user} profile={profile} />
         </div>
       </div>
     </motion.div>

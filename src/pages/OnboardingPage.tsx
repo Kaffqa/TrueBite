@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useProfile } from '@/hooks/useProfile';
+import { useAuth } from '@/contexts/AuthContext';
+import { generatePersonalIngredients } from '@/lib/ai-provider';
 import { OnboardingData } from '@/types/common.types';
 import { Ruler, Utensils, ShieldAlert, Target as TargetIcon } from 'lucide-react';
 
@@ -322,6 +324,7 @@ export default function OnboardingPage() {
     weight_unit: 'KG'
   });
   const { completeOnboarding } = useProfile();
+  const { user } = useAuth();
   const navigate = useNavigate();
 
   const updateData = (newData: any) => {
@@ -375,6 +378,40 @@ export default function OnboardingPage() {
       };
 
       await completeOnboarding(payload);
+
+      // Fire-and-forget: generate personalized ingredients in the background
+      if (user) {
+        const userProfile = {
+          allergies: data.allergies || [],
+          intolerances: data.intolerances || [],
+          medicalConditions: data.medical_conditions || [],
+          dietaryPreferences: data.dietary_preferences || [],
+          targetCalories: null,
+          targetSodiumMg: null,
+          targetSugarG: null,
+        };
+        generatePersonalIngredients(userProfile)
+          .then(async (aiIngredients) => {
+            if (aiIngredients && aiIngredients.length > 0) {
+              const { supabase } = await import('@/lib/supabase');
+              const rows = aiIngredients.map((ing: any) => ({
+                user_id: user.id,
+                ingredient_name: ing.ingredientName,
+                category: ing.category,
+                status: ing.status,
+                reason: ing.reason,
+                description: ing.description,
+                commonly_found_in: ing.commonlyFoundIn || [],
+                source: 'onboarding',
+                times_encountered: 1,
+              }));
+              await supabase.from('user_ingredients').upsert(rows as any, { onConflict: 'user_id,ingredient_name', ignoreDuplicates: true });
+              console.log(`✅ Generated ${aiIngredients.length} personalized ingredients.`);
+            }
+          })
+          .catch((err) => console.error('Background ingredient generation failed:', err));
+      }
+
       navigate('/app');
     }
   };
