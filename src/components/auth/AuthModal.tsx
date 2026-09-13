@@ -24,6 +24,7 @@ export default function AuthModal({ isOpen, onClose, defaultView = 'signup' }: A
   const navigate = useNavigate();
   const [view, setView] = useState<'login' | 'signup'>(defaultView);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<AuthFormValues>({
     resolver: zodResolver(authSchema)
@@ -33,6 +34,7 @@ export default function AuthModal({ isOpen, onClose, defaultView = 'signup' }: A
   React.useEffect(() => {
     reset();
     setError(null);
+    setSuccess(null);
   }, [view, isOpen, reset]);
 
   // Sync default view if it changes from outside
@@ -43,13 +45,23 @@ export default function AuthModal({ isOpen, onClose, defaultView = 'signup' }: A
   const onSubmit = async (data: AuthFormValues) => {
     try {
       setError(null);
+      setSuccess(null);
+      const cleanEmail = data.email.trim();
+      
       if (view === 'login') {
-        await signInWithEmail(data.email, data.password);
+        await signInWithEmail(cleanEmail, data.password);
+        onClose();
+        navigate('/app');
       } else {
-        await signUpWithEmail(data.email, data.password);
+        const response = await signUpWithEmail(cleanEmail, data.password);
+        if (response?.user && !response?.session) {
+          setSuccess('Registration successful! Please check your email to confirm your account.');
+          // Do not close or redirect yet, let them read the message
+        } else {
+          onClose();
+          navigate('/app');
+        }
       }
-      onClose();
-      navigate('/app');
     } catch (err: any) {
       setError(err.message || `Failed to ${view === 'login' ? 'sign in' : 'sign up'}`);
     }
@@ -157,6 +169,18 @@ export default function AuthModal({ isOpen, onClose, defaultView = 'signup' }: A
                 >
                   <div className="p-3 rounded-xl bg-red-50 text-red-600 text-[13px] font-mono text-center border border-red-100">
                     {error}
+                  </div>
+                </motion.div>
+              )}
+              {success && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
+                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-3 rounded-xl bg-[#e8efe9] text-[#1e4832] text-[13px] font-mono text-center border border-[#c5d1c9]">
+                    {success}
                   </div>
                 </motion.div>
               )}

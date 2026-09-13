@@ -1,8 +1,8 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { format, startOfDay, endOfDay, isToday as isTodayFn } from 'date-fns';
-import { Scan as PhosphorScan, CalendarBlank, CheckCircle, Warning, WarningCircle, CaretDown, Plus, X, MagicWand, ShieldCheck, ShieldWarning, Lightning, Fire, FireSimple } from '@phosphor-icons/react';
+import { Scan as PhosphorScan, CalendarDots, CheckCircle, Warning, WarningCircle, CaretDown, Plus, X, MagicWand, ShieldCheck, ShieldWarning, Lightning, Fire, FireSimple } from '@phosphor-icons/react';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useScanHistory } from '@/hooks/useScanHistory';
@@ -84,8 +84,9 @@ export function HistoryPage() {
   
   const [streakData, setStreakData] = useState<any[]>([]);
   const [streakCount, setStreakCount] = useState<number>(0);
+  const [scanDays, setScanDays] = useState<Set<number>>(new Set());
   
-  const { scans, setFilter } = useScanHistory(100, {
+  const { scans, loading, setFilter } = useScanHistory(100, {
     startDate: startOfDay(new Date()).toISOString(),
     endDate: endOfDay(new Date()).toISOString()
   });
@@ -101,40 +102,54 @@ export function HistoryPage() {
         .order('created_at', { ascending: false });
 
       let currentStreak = 0;
-      let scanDays = new Set<number>();
+      let days = new Set<number>();
       
       if (history && history.length > 0) {
-        scanDays = new Set(history.map((s: any) => startOfDay(new Date(s.created_at)).getTime()));
+        days = new Set(history.map((s: any) => startOfDay(new Date(s.created_at)).getTime()));
         const today = startOfDay(new Date()).getTime();
         const yesterday = today - 86400000;
 
-        if (scanDays.has(today) || scanDays.has(yesterday)) {
-          let checkTime = scanDays.has(today) ? today : yesterday;
-          while (scanDays.has(checkTime)) {
+        if (days.has(today) || days.has(yesterday)) {
+          let checkTime = days.has(today) ? today : yesterday;
+          while (days.has(checkTime)) {
             currentStreak++;
             checkTime -= 86400000;
           }
         }
       }
       setStreakCount(currentStreak);
-
-      // Generate the last 7 days for the UI
-      const todayTime = startOfDay(new Date()).getTime();
-      const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-      const streakArr = [];
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(todayTime - i * 86400000);
-        streakArr.push({
-          day: dayNames[d.getDay()],
-          date: d.getDate().toString(),
-          active: scanDays.has(d.getTime()),
-          today: i === 0
-        });
-      }
-      setStreakData(streakArr);
+      setScanDays(days);
     }
     fetchStreak();
   }, [user]);
+
+  // Generate the current week for the UI based on selectedDate
+  useEffect(() => {
+    const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    const streakArr = [];
+    const today = startOfDay(new Date()).getTime();
+    
+    // Find the Monday of the selected week
+    const weekStart = startOfDay(selectedDate);
+    const day = weekStart.getDay();
+    const diff = weekStart.getDate() - day + (day === 0 ? -6 : 1);
+    weekStart.setDate(diff);
+    
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(weekStart);
+      d.setDate(weekStart.getDate() + i);
+      const dTime = d.getTime();
+      
+      streakArr.push({
+        day: dayNames[d.getDay()],
+        date: d.getDate().toString(),
+        active: scanDays.has(dTime),
+        today: dTime === today,
+        fullDate: d
+      });
+    }
+    setStreakData(streakArr);
+  }, [selectedDate, scanDays]);
 
   useEffect(() => {
     setFilter({ 
@@ -449,11 +464,11 @@ export function HistoryPage() {
 
         {/* Right Side: Date Picker and Streak */}
         <div className="flex flex-col items-center md:items-end justify-between gap-8 shrink-0">
-          <div 
+          <button 
             className="flex items-center gap-2 cursor-pointer px-4 py-2 bg-white border border-[#c5d1c9] rounded-[4px] shadow-sm hover:shadow-md transition-shadow w-full md:w-auto justify-center"
             onClick={() => dateInputRef.current?.showPicker()}
           >
-            <CalendarBlank size={16} className="text-[#1a3825]" weight="fill" />
+            <CalendarDots size={18} className="text-[#1a3825]" weight="bold" />
             <span className="font-mono text-[12px] text-[#1e4832] tracking-wide whitespace-nowrap">
               {dateLabel}{format(selectedDate, 'MMMM dd, yyyy')}
             </span>
@@ -465,40 +480,70 @@ export function HistoryPage() {
               value={format(selectedDate, 'yyyy-MM-dd')}
               onChange={handleDateChange}
             />
-          </div>
+          </button>
 
           <div className="flex flex-col items-center w-full max-w-[260px]">
-            <div className="flex items-center justify-center gap-2 mb-5">
+            <div className="flex items-center justify-center gap-2 mb-3">
               <FireSimple size={26} weight="fill" style={{ fill: 'url(#fire-grad-history)' }} className="-mt-1" />
               <span className="font-serif text-[22px] text-[#1e4832]">{streakCount} Days Streak</span>
             </div>
             
-            <div className="flex justify-between w-full">
-              {streakData.map((d, i) => (
-                <div key={i} className="flex flex-col items-center gap-1.5">
-                  <span className={`text-[11px] font-sans ${d.today ? 'font-bold text-[#1e4832]' : 'text-[#8ba797]'}`}>{d.day}</span>
-                  <span className={`text-[11px] font-sans ${d.today ? 'font-bold text-[#1e4832]' : 'text-[#a4b5aa]'}`}>{d.date}</span>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${d.active ? 'bg-[#2a2d2a]' : 'bg-[#3b473f]'}`}>
-                    {d.active ? (
-                      <FireSimple size={16} weight="fill" style={{ fill: 'url(#fire-grad-history)' }} />
-                    ) : (
-                      <FireSimple size={16} weight="fill" className="text-[#64746b]" />
-                    )}
+            <div className="flex justify-center gap-2 w-full">
+              {streakData.map((d, i) => {
+                const isSelected = d.fullDate && startOfDay(d.fullDate).getTime() === startOfDay(selectedDate).getTime();
+                return (
+                  <div 
+                    key={i} 
+                    onClick={() => d.fullDate && setSelectedDate(d.fullDate)}
+                    className="flex flex-col items-center gap-1.5 cursor-pointer group w-[30px] shrink-0 relative"
+                  >
+                    <span className={`relative z-10 text-[11px] font-sans transition-colors duration-300 ${isSelected ? 'font-bold text-[#1e4832]' : 'text-[#8ba797] group-hover:text-[#6b8274]'}`}>{d.day}</span>
+                    <span className={`relative z-10 text-[11px] font-sans transition-colors duration-300 ${isSelected ? 'font-bold text-[#1e4832]' : 'text-[#a4b5aa] group-hover:text-[#8ba797]'}`}>{d.date}</span>
+                    <div className={`relative z-10 w-[30px] h-[30px] shrink-0 rounded-full flex items-center justify-center transition-colors duration-300 ${d.active ? 'bg-[#2a2d2a]' : 'bg-[#3b473f]'}`}>
+                      {d.active ? (
+                        <FireSimple size={15} weight="fill" style={{ fill: 'url(#fire-grad-history)' }} />
+                      ) : (
+                        <FireSimple size={15} weight="fill" className="text-[#64746b]" />
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Meal Section Cards - blocky */}
-      <div className="space-y-5">
-        {renderMealSection("Breakfast", "🍳", groups.breakfast, 'breakfast')}
-        {renderMealSection("Lunch", "🥗", groups.lunch, 'lunch')}
-        {renderMealSection("Dinner", "🌙", groups.dinner, 'dinner')}
-        {renderMealSection("Snacks", "🍿", groups.snack, 'snack')}
-      </div>
+      {/* Meal Section Cards - blocky with animation */}
+      <AnimatePresence mode="wait">
+        {loading ? (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
+            className="flex flex-col items-center justify-center py-20 opacity-50"
+          >
+            <Loader2 className="w-8 h-8 animate-spin text-[#8ba797] mb-4" />
+            <p className="font-mono text-sm text-[#8ba797]">Fetching journal...</p>
+          </motion.div>
+        ) : (
+          <motion.div 
+            key={selectedDate.toISOString()}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="space-y-5"
+          >
+            {renderMealSection("Breakfast", "🍳", groups.breakfast, 'breakfast')}
+            {renderMealSection("Lunch", "🥗", groups.lunch, 'lunch')}
+            {renderMealSection("Dinner", "🍲", groups.dinner, 'dinner')}
+            {renderMealSection("Snacks", "🥨", groups.snack, 'snack')}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Manual Add Modal - blocky */}
       {isModalOpen && (

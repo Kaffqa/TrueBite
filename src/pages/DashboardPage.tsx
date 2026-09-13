@@ -410,7 +410,7 @@ const IngredientOfDayWidget = ({ user, profile }: { user: any, profile: any }) =
         </p>
         <button 
           onClick={() => navigate('/app/ingredients')}
-          className="px-5 py-2 rounded-[4px] bg-[#1a3825] text-white font-mono text-[11px] hover:bg-[#254d35] transition-colors"
+          className="px-8 py-3 rounded-[4px] bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#c0d4c8] text-white font-mono font-medium text-[13px] flex items-center justify-center hover:brightness-110 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 hover:shadow-[0_8px_16px_rgba(0,0,0,0.2)] transition-all duration-200 shadow-md"
         >
           Go to Dictionary
         </button>
