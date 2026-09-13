@@ -127,7 +127,7 @@ export default function IngredientsPage() {
       >
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl md:text-4xl font-serif text-[#1e4832] mb-2 tracking-tight italic">
+            <h1 className="text-3xl md:text-4xl font-serif text-[#1e4832] mb-2 tracking-tight">
               Smart Ingredient Dictionary
             </h1>
             <p className="text-[#5a7a68] font-mono text-sm md:text-base">

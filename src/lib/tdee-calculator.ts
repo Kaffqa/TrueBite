@@ -85,9 +85,11 @@ export function calculateTDEE(params: {
 
   // Standard daily recommendations with condition-based adjustments
   const conditions = params.medicalConditions ?? [];
+  const lowerConditions = conditions.map(c => c.toLowerCase());
+  
   const targetFiberG = 30; // Standard RDA
-  const targetSodiumMg = conditions.includes('hypertension') ? 1500 : 2300;
-  const targetSugarG = conditions.includes('diabetes_type_2') || conditions.includes('diabetes_type_1') ? 25 : 50;
+  const targetSodiumMg = lowerConditions.includes('hypertension') ? 1500 : 2300;
+  const targetSugarG = lowerConditions.includes('diabetes type 2') || lowerConditions.includes('diabetes type 1') ? 25 : 50;
 
   return {
     bmr: Math.round(bmr),

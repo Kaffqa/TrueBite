@@ -134,14 +134,13 @@ export default function ScanResultPage() {
     >
       <div>
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6 pt-2">
+        <div className="mb-6 pt-2">
           <button 
             onClick={() => navigate('/app/history')} 
-            className="p-2.5 rounded-[4px] border border-[#e8efe9] bg-white hover:bg-[#f0f5f2] transition-colors"
+            className="inline-flex px-4 py-2 bg-white border border-[#cfdfd5] rounded-[4px] text-sm font-mono text-[#5a7a68] hover:bg-[#f0f5f2] hover:text-[#1e4832] transition-colors items-center gap-2"
           >
-            <CaretLeft className="w-5 h-5 text-[#1e4832]" weight="bold" />
+            <CaretLeft size={16} /> Back to Daily Log
           </button>
-          <h1 className="font-serif text-[28px] text-[#1e4832] italic">Scan Results</h1>
         </div>
 
         {/* Bento Grid */}

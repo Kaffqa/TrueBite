@@ -328,7 +328,9 @@ export function HistoryPage() {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5">
               <Lightning size={18} weight="fill" style={{ fill: 'url(#lightning-grad-history)' }} className="-mt-0.5" />
-              <span className="font-mono text-[13px] font-bold text-[#1e4832]">{Math.round(totalCals)} kcal</span>
+              <span className="font-mono text-[13px] text-[#1e4832]">
+                {Math.round(totalCals)} kcal
+              </span>
             </div>
             <button 
               onClick={() => openAddModal(mealType)}
@@ -446,7 +448,7 @@ export function HistoryPage() {
             </svg>
             <div className="flex items-center gap-2 mb-3">
               <Lightning size={20} weight="fill" style={{ fill: 'url(#lightning-grad-history)' }} className="mr-0.5 -mt-0.5" />
-              <span className="font-mono font-bold text-[14px] text-[#1e4832]">
+              <span className="font-mono text-[14px] text-[#1e4832]">
                 {currentCals} of {targetCals} kcal consumed
               </span>
             </div>
