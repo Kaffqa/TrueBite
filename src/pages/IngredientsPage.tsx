@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { MagnifyingGlass, CaretLeft, CaretRight, SpinnerGap, Sparkle } from '@phosphor-icons/react';
 import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
@@ -25,7 +25,23 @@ export default function IngredientsPage() {
     generateSeedIngredients,
   } = useIngredients();
 
-  const [selectedIngredient, setSelectedIngredient] = React.useState<any | null>(null);
+  const [selectedIngredient, setSelectedIngredient] = useState<any | null>(null);
+  const [localSearch, setLocalSearch] = useState(searchQuery || '');
+
+  // Sync initial query if needed
+  useEffect(() => {
+    if (searchQuery && !localSearch) {
+      setLocalSearch(searchQuery);
+    }
+  }, []);
+
+  // Debounce effect
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchQuery(localSearch);
+    }, 500); // 500ms debounce
+    return () => clearTimeout(timer);
+  }, [localSearch, setSearchQuery]);
 
   const filters: FilterType[] = ['All', 'Safe', 'Flagged', 'Allergen'];
 
@@ -139,7 +155,7 @@ export default function IngredientsPage() {
             <button
               onClick={generateSeedIngredients}
               disabled={isGenerating}
-              className="px-5 py-2.5 rounded-[4px] border border-[#cfdfd5] bg-white text-[#1e4832] font-mono text-[13px] font-medium flex items-center gap-2 hover:bg-[#f0f5f2] transition-colors disabled:opacity-50 flex-shrink-0"
+              className="px-5 py-2.5 rounded-[4px] border border-[#cfdfd5] bg-white text-[#1e4832] font-mono text-[13px] flex items-center gap-2 hover:bg-[#f0f5f2] transition-colors disabled:opacity-50 flex-shrink-0"
             >
               {isGenerating ? (
                 <><Loader2 className="w-4 h-4 animate-spin text-[#6b9279]" /> Generating...</>
@@ -155,11 +171,11 @@ export default function IngredientsPage() {
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#8ba797]">
             <MagnifyingGlass size={20} />
           </div>
-          <input
-            type="text"
-            placeholder="Search ingredients (e.g., E407, Maltodextrin...)"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            <input
+              type="text"
+              placeholder="Search ingredients (e.g., E407, Maltodextrin...)"
+              value={localSearch}
+              onChange={(e) => setLocalSearch(e.target.value)}
             className="w-full pl-11 pr-4 py-3 bg-white border border-[#cfdfd5] rounded-[4px] text-sm md:text-base text-[#1e4832] placeholder:text-[#8ba797] focus:outline-none focus:ring-2 focus:ring-[#6b9279]/20 focus:border-[#6b9279] transition-all font-mono"
           />
         </div>
@@ -172,7 +188,7 @@ export default function IngredientsPage() {
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`relative w-[110px] py-2 rounded-[4px] text-sm font-mono font-medium transition-colors ${
+                className={`relative w-[110px] py-2 rounded-[4px] text-sm font-mono transition-colors ${
                   isActive
                     ? 'text-white border border-transparent'
                     : 'bg-white text-[#5a7a68] border border-[#cfdfd5] hover:bg-[#f0f5f2] hover:text-[#1e4832]'
@@ -219,7 +235,7 @@ export default function IngredientsPage() {
           <button
             onClick={generateSeedIngredients}
             disabled={isGenerating}
-            className="px-8 py-4 rounded-[4px] bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#1a3825] text-white font-mono font-medium text-[13px] flex items-center gap-3 shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.3),_0_4px_12px_rgba(22,51,35,0.3)] hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-8 py-4 rounded-[4px] bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#1a3825] text-white font-mono text-[13px] flex items-center gap-3 shadow-[inset_0_0_0_1.5px_rgba(255,255,255,0.3),_0_4px_12px_rgba(22,51,35,0.3)] hover:brightness-110 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGenerating ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Generating with AI...</>

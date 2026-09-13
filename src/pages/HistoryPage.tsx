@@ -9,6 +9,8 @@ import { useScanHistory } from '@/hooks/useScanHistory';
 import { useNutrition } from '@/contexts/NutritionContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { analyzeText } from '@/lib/ai-provider';
+import { CustomDatePicker } from '@/components/ui/CustomDatePicker';
+import { CustomTimePicker } from '@/components/ui/CustomTimePicker';
 
 const AppleEmoji = ({ emoji, className = "w-4 h-4" }: { emoji: string, className?: string }) => {
   const codePoints = Array.from(emoji).map(c => c.codePointAt(0)?.toString(16));
@@ -295,13 +297,7 @@ export function HistoryPage() {
     return { breakfast, lunch, dinner, snack };
   }, [scans, selectedDate]);
 
-  const dateInputRef = useRef<HTMLInputElement>(null);
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value) {
-      setSelectedDate(new Date(e.target.value));
-    }
-  };
 
   const openAddModal = (mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack') => {
     setMealTypeForAdd(mealType);
@@ -466,23 +462,11 @@ export function HistoryPage() {
 
         {/* Right Side: Date Picker and Streak */}
         <div className="flex flex-col items-center md:items-end justify-between gap-8 shrink-0">
-          <button 
-            className="flex items-center gap-2 cursor-pointer px-4 py-2 bg-white border border-[#c5d1c9] rounded-[4px] shadow-sm hover:shadow-md transition-shadow w-full md:w-auto justify-center"
-            onClick={() => dateInputRef.current?.showPicker()}
-          >
-            <CalendarDots size={18} className="text-[#1a3825]" weight="bold" />
-            <span className="font-mono text-[12px] text-[#1e4832] tracking-wide whitespace-nowrap">
-              {dateLabel}{format(selectedDate, 'MMMM dd, yyyy')}
-            </span>
-            <CaretDown size={14} className="text-[#6b8274]" weight="bold" />
-            <input 
-              ref={dateInputRef}
-              type="date" 
-              className="sr-only"
-              value={format(selectedDate, 'yyyy-MM-dd')}
-              onChange={handleDateChange}
-            />
-          </button>
+          <CustomDatePicker 
+            selectedDate={selectedDate} 
+            onChange={setSelectedDate} 
+            dateLabel={dateLabel} 
+          />
 
           <div className="flex flex-col items-center w-full max-w-[260px]">
             <div className="flex items-center justify-center gap-2 mb-3">
@@ -582,13 +566,9 @@ export function HistoryPage() {
                   <label className="block font-mono text-[11px] font-bold uppercase tracking-wider text-[#6b8274] mb-2">
                     Time Consumed
                   </label>
-                  <input
-                    type="time"
+                  <CustomTimePicker 
                     value={consumedTime}
-                    onClick={e => e.stopPropagation()}
-                    onKeyDown={e => e.stopPropagation()}
-                    onChange={(e) => setConsumedTime(e.target.value)}
-                    className="w-full p-3 border border-[#c5d1c9] bg-[#f4f7f5] text-[#1e4832] font-mono text-[14px] rounded-[4px] focus:outline-none focus:border-[#1e4832]"
+                    onChange={setConsumedTime}
                   />
                 </div>
               </div>

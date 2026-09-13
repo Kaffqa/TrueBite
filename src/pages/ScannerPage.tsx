@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Camera, Image as ImageIcon, X, RefreshCw, AlertCircle, AlertTriangle, ShieldAlert, Loader2, ChevronLeft, ShieldCheck } from 'lucide-react';
-import { Scan as PhosphorScan } from '@phosphor-icons/react';
+import { Camera, Image as ImageIcon, X, RefreshCw, AlertCircle, Loader2, ChevronLeft } from 'lucide-react';
+import { Scan as PhosphorScan, ShieldCheck, Warning, ShieldWarning } from '@phosphor-icons/react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCamera } from '@/hooks/useCamera';
@@ -15,6 +15,7 @@ export default function ScannerPage() {
   const { scanState, result, error, processScan, reset, confirmMealLog } = useScanner();
 
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
     startCamera();
@@ -41,9 +42,13 @@ export default function ScannerPage() {
 
   const handleCapture = async () => {
     try {
-      const blob = await capturePhoto(videoRef as React.RefObject<HTMLVideoElement>);
-      setPreviewUrl(URL.createObjectURL(blob));
-      await processScan(blob);
+      if (selectedFile) {
+        await processScan(selectedFile);
+      } else {
+        const blob = await capturePhoto(videoRef as React.RefObject<HTMLVideoElement>);
+        setPreviewUrl(URL.createObjectURL(blob));
+        await processScan(blob);
+      }
     } catch (err) {
       console.error(err);
     }
@@ -58,12 +63,14 @@ export default function ScannerPage() {
         return;
       }
       setPreviewUrl(URL.createObjectURL(file));
-      await processScan(file);
+      setSelectedFile(file);
     }
   };
 
   const handleReset = () => {
     setPreviewUrl(null);
+    setSelectedFile(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
     reset();
   };
 
@@ -158,11 +165,11 @@ export default function ScannerPage() {
           <div className="flex gap-4">
             <button 
               onClick={handleCapture}
-              disabled={isLoading || !isActive}
-              className="flex-1 bg-gradient-to-r from-[#5a8069] to-[#1a3825] hover:brightness-110 active:scale-95 transition-all text-white py-4 rounded-[4px] font-mono text-[13px] font-semibold flex items-center justify-center gap-3 shadow-md disabled:opacity-50"
+              disabled={isLoading || (!isActive && !selectedFile)}
+              className="flex-1 bg-gradient-to-r from-[#5a8069] to-[#1a3825] hover:brightness-110 active:scale-95 transition-all text-white py-4 rounded-[4px] font-mono text-[13px] flex items-center justify-center gap-3 shadow-md disabled:opacity-50"
             >
               <PhosphorScan size={18} weight="fill" />
-              <span>Capture & Analyse</span>
+              <span>{selectedFile ? "Analyse Photo" : "Capture & Analyse"}</span>
             </button>
             <button 
               onClick={() => fileInputRef.current?.click()}
@@ -193,9 +200,9 @@ export default function ScannerPage() {
                 result.safetyStatus === 'caution' ? 'bg-[#fef3c7] text-[#92400e]' :
                 'bg-[#fecaca] text-[#991b1b]'
               }`}>
-                {result.safetyStatus === 'safe' && <ShieldCheck size={14} strokeWidth={2.5} />}
-                {result.safetyStatus === 'caution' && <AlertTriangle size={14} strokeWidth={2.5} />}
-                {result.safetyStatus === 'danger' && <AlertCircle size={14} strokeWidth={2.5} />}
+                {result.safetyStatus === 'safe' && <ShieldCheck size={14} weight="fill" />}
+                {result.safetyStatus === 'caution' && <Warning size={14} weight="fill" />}
+                {result.safetyStatus === 'danger' && <ShieldWarning size={14} weight="fill" />}
                 {result.safetyStatus === 'safe' ? 'Safe' : result.safetyStatus === 'caution' ? 'Flagged' : 'Danger'}
               </span>
             </div>
@@ -236,15 +243,15 @@ export default function ScannerPage() {
                 if (isAllergen) {
                   badgeClass = 'bg-[#fecaca] text-[#991b1b]';
                   label = 'Allergen Alert';
-                  Icon = ShieldAlert;
+                  Icon = ShieldWarning;
                 } else if (item.safetyStatus === 'danger') {
                   badgeClass = 'bg-[#fecaca] text-[#991b1b]';
                   label = 'Danger';
-                  Icon = AlertCircle;
+                  Icon = ShieldWarning;
                 } else if (item.safetyStatus === 'caution') {
                   badgeClass = 'bg-[#fef3c7] text-[#92400e]';
                   label = 'Flagged';
-                  Icon = AlertTriangle;
+                  Icon = Warning;
                 } else {
                   badgeClass = 'bg-[#bbf7d0] text-[#166534]';
                   label = 'Safe';
@@ -262,7 +269,7 @@ export default function ScannerPage() {
                       )}
                     </div>
                     <div className={`shrink-0 w-[120px] justify-center text-[10px] font-mono ${badgeClass} py-2 rounded-[4px] uppercase tracking-wider font-bold flex items-center gap-1.5`}>
-                      <Icon size={12} strokeWidth={2.5} />
+                      <Icon size={12} weight="fill" />
                       {label}
                     </div>
                   </div>
@@ -278,13 +285,13 @@ export default function ScannerPage() {
                    }
                    navigate('/app/history');
                  }} 
-                 className="flex-2 w-full py-4 rounded-[4px] bg-gradient-to-r from-[#5a8069] to-[#1a3825] font-mono text-[13px] font-semibold text-white hover:brightness-110 active:scale-95 transition-all shadow-md flex justify-center items-center gap-2"
+                 className="flex-2 w-full py-4 rounded-[4px] bg-gradient-to-r from-[#5a8069] to-[#1a3825] font-mono text-[13px] text-white hover:brightness-110 active:scale-95 transition-all shadow-md flex justify-center items-center gap-2"
                >
                  + Add to Daily Log
                </button>
                <button 
                  onClick={handleReset} 
-                 className="flex-1 py-4 rounded-[4px] border border-[#d1dfd6] font-mono text-[13px] font-semibold text-[#8ba797] hover:border-[#5a8069] hover:text-[#5a8069] bg-white transition-all shadow-sm flex justify-center items-center gap-2 whitespace-nowrap px-4"
+                 className="flex-1 py-4 rounded-[4px] border border-[#d1dfd6] font-mono text-[13px] text-[#8ba797] hover:border-[#5a8069] hover:text-[#5a8069] bg-white transition-all shadow-sm flex justify-center items-center gap-2 whitespace-nowrap px-4"
                >
                  <RefreshCw size={16} /> Rescan
                </button>

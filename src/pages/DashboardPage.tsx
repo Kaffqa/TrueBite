@@ -219,7 +219,7 @@ const DailySummaryCard = ({ profile, todaySummary }: any) => {
       
       <button 
         onClick={() => navigate('/app/history')} 
-        className="w-full py-3.5 mt-auto rounded-[4px] border border-[#c5d1c9] text-[#1e4832] font-mono font-medium text-[13px] hover:bg-[#f0f5f2] transition-colors"
+        className="w-full py-3.5 mt-auto rounded-[4px] border border-[#c5d1c9] text-[#1e4832] font-mono text-[13px] hover:bg-[#f0f5f2] transition-colors"
       >
         See Daily Journal
       </button>
@@ -266,7 +266,7 @@ const RecentScansCard = ({ scans, loading }: { scans: any[], loading: boolean })
           <h2 className="text-2xl font-serif text-[#1e4832]">Recent Scans</h2>
           <p className="font-mono text-xs text-[#6b8274] mt-1">Today's activity</p>
         </div>
-        <Link to="/app/history" className="px-5 py-2 rounded-[4px] border border-[#c5d1c9] text-[#1e4832] font-mono text-[11px] font-semibold hover:bg-[#f0f5f2] transition-colors">
+        <Link to="/app/history" className="px-5 py-2 rounded-[4px] border border-[#c5d1c9] text-[#1e4832] font-mono text-[11px] hover:bg-[#f0f5f2] transition-colors">
           View Full Log
         </Link>
       </div>
@@ -338,7 +338,7 @@ const ScannerActionCard = ({ scanCount, flagCount, streakDays }: { scanCount: nu
         </p>
       </div>
 
-      <Link to="/app/scan" className="w-full py-4 mb-8 rounded-[4px] bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#c0d4c8] text-white font-mono font-medium text-[13px] flex items-center justify-center gap-2 hover:brightness-110 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 hover:shadow-[0_8px_16px_rgba(0,0,0,0.2)] transition-all duration-200 shadow-md">
+      <Link to="/app/scan" className="w-full py-4 mb-8 rounded-[4px] bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#c0d4c8] text-white font-mono text-[13px] flex items-center justify-center gap-2 hover:brightness-110 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 hover:shadow-[0_8px_16px_rgba(0,0,0,0.2)] transition-all duration-200 shadow-md">
         <PhosphorScan size={18} weight="fill" />
         Open Scanner
       </Link>
@@ -410,7 +410,7 @@ const IngredientOfDayWidget = ({ user, profile }: { user: any, profile: any }) =
         </p>
         <button 
           onClick={() => navigate('/app/ingredients')}
-          className="px-8 py-3 rounded-[4px] bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#c0d4c8] text-white font-mono font-medium text-[13px] flex items-center justify-center hover:brightness-110 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 hover:shadow-[0_8px_16px_rgba(0,0,0,0.2)] transition-all duration-200 shadow-md"
+          className="px-8 py-3 rounded-[4px] bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#c0d4c8] text-white font-mono text-[13px] flex items-center justify-center hover:brightness-110 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 hover:shadow-[0_8px_16px_rgba(0,0,0,0.2)] transition-all duration-200 shadow-md"
         >
           Go to Dictionary
         </button>
@@ -495,7 +495,7 @@ const IngredientOfDayWidget = ({ user, profile }: { user: any, profile: any }) =
       <div className="mt-auto">
         <button 
           onClick={() => navigate('/app/ingredients')}
-          className="w-full py-3.5 rounded-[4px] border border-[#cfdfd5] text-[#5a7a68] font-mono font-medium text-[13px] hover:bg-[#f0f5f2] transition-colors"
+          className="w-full py-3.5 rounded-[4px] border border-[#cfdfd5] text-[#5a7a68] font-mono text-[13px] hover:bg-[#f0f5f2] transition-colors"
         >
           Learn More in Dictionary
         </button>

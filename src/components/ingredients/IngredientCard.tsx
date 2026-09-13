@@ -93,7 +93,7 @@ export default function IngredientCard({
 
       <button
         onClick={onClick}
-        className="w-full py-3 px-4 border border-[#cfdfd5] rounded-[4px] text-sm font-mono text-[#1e4832] font-medium flex items-center justify-center gap-2 hover:bg-[#f0f5f2] transition-colors"
+        className="w-full py-3 px-4 border border-[#cfdfd5] rounded-[4px] text-sm font-mono text-[#1e4832] flex items-center justify-center gap-2 hover:bg-[#f0f5f2] transition-colors"
       >
         View Details <ArrowRight size={16} />
       </button>
