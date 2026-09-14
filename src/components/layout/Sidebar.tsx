@@ -47,7 +47,7 @@ export default function Sidebar() {
         <NavItem to="/app/ingredients" icon={Note} label="Ingredients" />
       </nav>
 
-      <div className="pb-8 space-y-2 font-mono border-t border-[#e8efe9] pt-4 shrink-0">
+      <div className="pb-8 space-y-2 font-mono pt-4 shrink-0">
         <NavItem to="/app/help" icon={Question} label="Help" />
         <NavItem to="/app/settings" icon={Gear} label="Settings" />
       </div>

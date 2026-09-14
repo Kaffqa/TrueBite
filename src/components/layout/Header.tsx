@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/contexts/AuthContext';
-import { User, Bell, Search, Loader2, Utensils, Beaker, PlusCircle } from 'lucide-react';
+import { User, Bell, Search, Loader2, Utensils, Beaker, PlusCircle, CheckCircle2, AlertTriangle, ShieldAlert, Info, X } from 'lucide-react';
+import { useNotifications } from '@/hooks/useNotifications';
+import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -15,6 +17,9 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
+  const [showNotif, setShowNotif] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
   const [results, setResults] = useState<{ type: 'meal' | 'ingredient', id: string, title: string, subtitle?: string, status?: string }[]>([]);
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -25,6 +30,9 @@ export default function Header() {
     function handleClickOutside(event: MouseEvent) {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setShowNotif(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -182,9 +190,79 @@ export default function Header() {
       </div>
 
       <div className="flex items-center gap-2 ml-auto">
-        <button className="w-8 h-8 flex items-center justify-center rounded-[2px] bg-gradient-to-b from-[#88ba9d] to-[#173d26] text-white shadow-sm border border-[#c0d4c8] hover:shadow-md transition-all">
-          <Bell className="w-4 h-4" />
-        </button>
+        
+        {/* Notifications */}
+        <div className="relative" ref={notifRef}>
+          <button 
+            onClick={() => setShowNotif(!showNotif)}
+            className="w-8 h-8 flex items-center justify-center rounded-[2px] bg-gradient-to-b from-[#88ba9d] to-[#173d26] text-white shadow-sm border border-[#c0d4c8] hover:shadow-md transition-all relative"
+          >
+            <Bell className="w-4 h-4" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 border border-white rounded-full"></span>
+            )}
+          </button>
+
+          <AnimatePresence>
+            {showNotif && (
+              <motion.div
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 5 }}
+                transition={{ duration: 0.15 }}
+                className="absolute top-[110%] right-0 w-80 bg-white border border-[#e0e8e3] shadow-lg rounded-[4px] overflow-hidden z-50 flex flex-col"
+              >
+                <div className="p-3 border-b border-[#e0e8e3] flex justify-between items-center bg-[#f7f9f8]">
+                  <div className="flex items-center gap-2">
+                    <span className="font-serif text-[#1e4832] text-sm font-medium">Notifications</span>
+                    {unreadCount > 0 && (
+                      <button onClick={markAllAsRead} className="font-mono text-[10px] text-[#5c8b71] hover:text-[#1e4832] transition-colors">
+                        Mark all as read
+                      </button>
+                    )}
+                  </div>
+                  <button onClick={() => setShowNotif(false)} className="text-[#8ba797] hover:text-[#1e4832] transition-colors p-1 rounded-[2px] hover:bg-[#e0e8e3]">
+                    <X size={14} />
+                  </button>
+                </div>
+
+                <div className="max-h-[350px] overflow-y-auto flex flex-col">
+                  {notifications.length === 0 ? (
+                    <div className="p-8 flex flex-col items-center justify-center text-center">
+                      <Bell className="w-8 h-8 text-[#c5d1c9] mb-2" />
+                      <span className="font-serif text-[#1e4832] text-sm">You're all caught up!</span>
+                      <span className="font-mono text-[10px] text-[#8ba797] mt-1">No new notifications right now.</span>
+                    </div>
+                  ) : (
+                    notifications.map(n => (
+                      <div 
+                        key={n.id} 
+                        onClick={() => {
+                          markAsRead(n.id);
+                        }}
+                        className={`p-3 border-b border-[#e0e8e3] last:border-0 hover:bg-[#f0f5f2] cursor-pointer transition-colors flex gap-3 ${n.is_read ? 'opacity-60' : 'bg-white'}`}
+                      >
+                        <div className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${n.type === 'alert' ? 'bg-[#fef2f2] text-[#991b1b]' : n.type === 'streak' ? 'bg-[#f0fdf4] text-[#166534]' : 'bg-[#f0f9ff] text-[#0369a1]'}`}>
+                          {n.type === 'alert' && <ShieldAlert size={12} />}
+                          {n.type === 'streak' && <CheckCircle2 size={12} />}
+                          {n.type === 'info' && <Info size={12} />}
+                        </div>
+                        <div className="flex flex-col flex-1">
+                          <span className="font-mono text-[11px] font-bold text-[#1e4832] mb-0.5">{n.title}</span>
+                          <span className="font-mono text-[10px] text-[#5a7a68] leading-tight">{n.message}</span>
+                          <span className="font-mono text-[9px] text-[#a4b5aa] mt-1.5">
+                            {formatDistanceToNow(new Date(n.created_at), { addSuffix: true })}
+                          </span>
+                        </div>
+                        {!n.is_read && <div className="w-1.5 h-1.5 bg-red-500 rounded-full shrink-0 mt-1" />}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
         <div className="w-8 h-8 rounded-[2px] bg-[#e8efe9] flex items-center justify-center overflow-hidden border border-[#c5d1c9] shadow-sm">
           {avatarUrl && !imgError ? (
             <img 
