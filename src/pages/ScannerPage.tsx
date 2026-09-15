@@ -79,18 +79,11 @@ export default function ScannerPage() {
   return (
     <div className="h-full flex flex-col font-sans max-w-7xl mx-auto w-full">
       
-      {/* Header for Mobile (Hidden on Desktop) */}
-      <div className="md:hidden flex items-center mb-2 px-4 pt-4">
-        <button onClick={() => navigate('/app')} className="p-2 -ml-2 rounded-full hover:bg-black/5 text-[#1e4832] transition-colors">
-          <ChevronLeft size={24} />
-        </button>
-        <h2 className="font-serif text-[22px] text-[#1e4832] ml-2">Scanner</h2>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 h-full min-h-[600px] p-4 lg:p-0 lg:py-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 flex-1 h-full p-4 lg:p-0 lg:py-6">
         
         {/* Left Column: AI Vision Scanner Card */}
-        <div className="bg-white rounded-[4px] border border-[#e8efe9] p-8 flex flex-col shadow-sm h-full">
+        <div className={`bg-white rounded-[4px] border border-[#e8efe9] p-8 flex-col shadow-sm h-full ${result ? 'hidden lg:flex' : 'flex'}`}>
           <div>
             <h3 className="font-serif text-[28px] text-[#1e4832] mb-3">AI Vision Scanner</h3>
             <p className="font-mono text-[13px] text-[#8ba797] leading-relaxed mb-8 max-w-md">
@@ -209,7 +202,7 @@ export default function ScannerPage() {
                 </span>
               </div>
 
-              {result.healthWarnings && result.healthWarnings.length > 0 && (
+              {Array.isArray(result.healthWarnings) && result.healthWarnings.length > 0 && (
                 <p className="font-mono text-[12px] text-[#6b8274] mb-6 leading-relaxed">
                   {result.healthWarnings.map((w: any) => typeof w === 'string' ? w : (w.message || w.title || w.detail)).filter(Boolean).join('. ')}
                 </p>
@@ -217,25 +210,25 @@ export default function ScannerPage() {
 
               <div className="grid grid-cols-2 gap-3 mb-6">
                  <div className="bg-[#132c1e] p-4 rounded-[4px] flex flex-col items-center justify-center text-center">
-                   <span className="font-serif text-[32px] text-white">{result.totalNutrition.calories}</span>
+                   <span className="font-serif text-[32px] text-white">{result.totalNutrition?.calories}</span>
                    <span className="font-mono text-[10px] text-[#8ba797] uppercase tracking-wider mt-1">Kcal</span>
                  </div>
                  <div className="bg-[#132c1e] p-4 rounded-[4px] flex flex-col items-center justify-center text-center">
-                   <span className="font-serif text-[32px] text-white">{result.totalNutrition.proteinG}g</span>
+                   <span className="font-serif text-[32px] text-white">{result.totalNutrition?.proteinG}g</span>
                    <span className="font-mono text-[10px] text-[#8ba797] uppercase tracking-wider mt-1">Protein</span>
                  </div>
                  <div className="bg-[#132c1e] p-4 rounded-[4px] flex flex-col items-center justify-center text-center">
-                   <span className="font-serif text-[32px] text-white">{result.totalNutrition.carbsG}g</span>
+                   <span className="font-serif text-[32px] text-white">{result.totalNutrition?.carbsG}g</span>
                    <span className="font-mono text-[10px] text-[#8ba797] uppercase tracking-wider mt-1">Carbs</span>
                  </div>
                  <div className="bg-[#132c1e] p-4 rounded-[4px] flex flex-col items-center justify-center text-center">
-                   <span className="font-serif text-[32px] text-white">{result.totalNutrition.fatG}g</span>
+                   <span className="font-serif text-[32px] text-white">{result.totalNutrition?.fatG}g</span>
                    <span className="font-mono text-[10px] text-[#8ba797] uppercase tracking-wider mt-1">Fat</span>
                  </div>
               </div>
 
               <div className="space-y-0 mb-8 border-t border-[#e8efe9]">
-                {result.items.map((item: any, i: number) => {
+                {Array.isArray(result.items) && result.items.map((item: any, i: number) => {
                   const isAllergen = item.detectedAllergens && item.detectedAllergens.length > 0;
                   
                   let badgeClass = '';
@@ -319,7 +312,7 @@ export default function ScannerPage() {
                 
                 <h3 className="font-serif text-[32px] md:text-[26px] text-[#1e4832] leading-tight mb-4">{result.mealTitle}</h3>
 
-                {result.healthWarnings && result.healthWarnings.length > 0 && (
+                {Array.isArray(result.healthWarnings) && result.healthWarnings.length > 0 && (
                   <p className="font-mono text-[12px] text-[#6b8274] leading-relaxed max-w-sm">
                     {result.healthWarnings.map((w: any) => typeof w === 'string' ? w : (w.message || w.title || w.detail)).filter(Boolean).join('. ')}
                   </p>
@@ -329,26 +322,26 @@ export default function ScannerPage() {
               {/* Macros */}
               <div className="grid grid-cols-2 gap-3 mb-8 px-1 md:px-0">
                  <div className="bg-[#132c1e] py-6 px-2 rounded-[4px] flex flex-col items-center justify-center text-center">
-                   <span className="font-serif text-[42px] leading-none text-white mb-2">{result.totalNutrition.calories}</span>
+                   <span className="font-serif text-[42px] leading-none text-white mb-2">{result.totalNutrition?.calories}</span>
                    <span className="font-mono text-[11px] text-[#8ba797]">Kcal</span>
                  </div>
                  <div className="bg-[#132c1e] py-6 px-2 rounded-[4px] flex flex-col items-center justify-center text-center">
-                   <span className="font-serif text-[42px] leading-none text-white mb-2">{result.totalNutrition.proteinG}g</span>
+                   <span className="font-serif text-[42px] leading-none text-white mb-2">{result.totalNutrition?.proteinG}g</span>
                    <span className="font-mono text-[11px] text-[#8ba797]">Protein</span>
                  </div>
                  <div className="bg-[#132c1e] py-6 px-2 rounded-[4px] flex flex-col items-center justify-center text-center">
-                   <span className="font-serif text-[42px] leading-none text-white mb-2">{result.totalNutrition.carbsG}g</span>
+                   <span className="font-serif text-[42px] leading-none text-white mb-2">{result.totalNutrition?.carbsG}g</span>
                    <span className="font-mono text-[11px] text-[#8ba797]">Carbs</span>
                  </div>
                  <div className="bg-[#132c1e] py-6 px-2 rounded-[4px] flex flex-col items-center justify-center text-center">
-                   <span className="font-serif text-[42px] leading-none text-white mb-2">{result.totalNutrition.fatG}g</span>
+                   <span className="font-serif text-[42px] leading-none text-white mb-2">{result.totalNutrition?.fatG}g</span>
                    <span className="font-mono text-[11px] text-[#8ba797]">Fat</span>
                  </div>
               </div>
 
               {/* Ingredients List */}
               <div className="space-y-0 mb-8 border-t border-[#e8efe9]">
-                {result.items.map((item: any, i: number) => {
+                {Array.isArray(result.items) && result.items.map((item: any, i: number) => {
                   const isAllergen = item.detectedAllergens && item.detectedAllergens.length > 0;
                   
                   let badgeClass = '';
@@ -406,7 +399,7 @@ export default function ScannerPage() {
             </div>
           </>
         ) : (
-          <div className="bg-white rounded-[4px] border border-[#e8efe9] p-8 flex flex-col items-center justify-center text-center shadow-sm">
+          <div className="hidden lg:flex bg-white rounded-[4px] border border-[#e8efe9] p-8 flex-col items-center justify-center text-center shadow-sm h-full">
             <h3 className="font-serif text-[32px] text-[#1e4832] mb-4">No Result Yet</h3>
             <p className="font-mono text-[12px] text-[#8ba797] max-w-xs leading-relaxed">
               Upload an image or use your camera to<br />

@@ -92,13 +92,13 @@ export function useScanner() {
         meal_title: analysisResult.mealTitle,
         safety_status: analysisResult.safetyStatus,
         health_warnings: analysisResult.healthWarnings || [],
-        total_calories: analysisResult.totalNutrition.calories,
-        total_protein_g: analysisResult.totalNutrition.proteinG,
-        total_carbs_g: analysisResult.totalNutrition.carbsG,
-        total_fat_g: analysisResult.totalNutrition.fatG,
-        total_fiber_g: analysisResult.totalNutrition.fiberG,
-        total_sugar_g: analysisResult.totalNutrition.sugarG,
-        total_sodium_mg: analysisResult.totalNutrition.sodiumMg,
+        total_calories: analysisResult.totalNutrition?.calories,
+        total_protein_g: analysisResult.totalNutrition?.proteinG,
+        total_carbs_g: analysisResult.totalNutrition?.carbsG,
+        total_fat_g: analysisResult.totalNutrition?.fatG,
+        total_fiber_g: analysisResult.totalNutrition?.fiberG,
+        total_sugar_g: analysisResult.totalNutrition?.sugarG,
+        total_sodium_mg: analysisResult.totalNutrition?.sodiumMg,
         raw_ai_response: analysisResult.dailyImpact,
       };
 
@@ -112,7 +112,7 @@ export function useScanner() {
       if (scanError || !scanData) throw scanError || new Error('Failed to save scan');
 
       // Save scan items (nutrition)
-      if (analysisResult.items && analysisResult.items.length > 0) {
+      if (Array.isArray(analysisResult.items) && analysisResult.items.length > 0) {
         const scanItemsData = analysisResult.items.map((item) => ({
           // @ts-ignore
           scan_id: scanData.id,
@@ -145,13 +145,13 @@ export function useScanner() {
           scan_id: scanData.id,
           meal_type: getMealType(),
           food_name: analysisResult.mealTitle,
-          calories: analysisResult.totalNutrition.calories,
-          protein_g: analysisResult.totalNutrition.proteinG,
-          carbs_g: analysisResult.totalNutrition.carbsG,
-          fat_g: analysisResult.totalNutrition.fatG,
-          fiber_g: analysisResult.totalNutrition.fiberG,
-          sugar_g: analysisResult.totalNutrition.sugarG,
-          sodium_mg: analysisResult.totalNutrition.sodiumMg,
+          calories: analysisResult.totalNutrition?.calories,
+          protein_g: analysisResult.totalNutrition?.proteinG,
+          carbs_g: analysisResult.totalNutrition?.carbsG,
+          fat_g: analysisResult.totalNutrition?.fatG,
+          fiber_g: analysisResult.totalNutrition?.fiberG,
+          sugar_g: analysisResult.totalNutrition?.sugarG,
+          sodium_mg: analysisResult.totalNutrition?.sodiumMg,
           consumed_at: format(new Date(), "yyyy-MM-dd'T'HH:mm:ssxxx"),
           log_date: format(new Date(), 'yyyy-MM-dd'),
           portion_multiplier: 1,
@@ -160,7 +160,7 @@ export function useScanner() {
       }
       
       // Background sync ingredients
-      if (analysisResult.items && analysisResult.items.length > 0) {
+      if (Array.isArray(analysisResult.items) && analysisResult.items.length > 0) {
         // @ts-ignore
         syncFromScan(analysisResult.items, scanData.id).catch(err => 
           console.error('Failed to sync ingredients:', err)
@@ -213,13 +213,13 @@ export function useScanner() {
       scan_id: (result as any).id,
       meal_type: mealType,
       food_name: result.mealTitle,
-      calories: result.totalNutrition.calories,
-      protein_g: result.totalNutrition.proteinG,
-      carbs_g: result.totalNutrition.carbsG,
-      fat_g: result.totalNutrition.fatG,
-      fiber_g: result.totalNutrition.fiberG,
-      sugar_g: result.totalNutrition.sugarG,
-      sodium_mg: result.totalNutrition.sodiumMg,
+      calories: result.totalNutrition?.calories,
+      protein_g: result.totalNutrition?.proteinG,
+      carbs_g: result.totalNutrition?.carbsG,
+      fat_g: result.totalNutrition?.fatG,
+      fiber_g: result.totalNutrition?.fiberG,
+      sugar_g: result.totalNutrition?.sugarG,
+      sodium_mg: result.totalNutrition?.sodiumMg,
       consumed_at: format(new Date(), "yyyy-MM-dd'T'HH:mm:ssxxx"),
       log_date: format(new Date(), 'yyyy-MM-dd'),
       portion_multiplier: 1,

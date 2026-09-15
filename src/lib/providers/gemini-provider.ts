@@ -21,7 +21,7 @@ export class GeminiProvider implements AIProvider {
       throw new Error('Gemini API key is not configured.');
     }
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
     
     // Strip data URI prefix if present
     const base64Data = imageBase64.includes('base64,') 
@@ -97,7 +97,7 @@ export class GeminiProvider implements AIProvider {
       throw new Error('Gemini API key is not configured.');
     }
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
     
     const systemPrompt = buildTextSystemPrompt(userProfile);
     const userPrompt = `Analyze this food description: "${description}". Estimate nutrition and check for safety concerns based on my health profile.`;
@@ -158,7 +158,7 @@ export class GeminiProvider implements AIProvider {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey) throw new Error('Gemini API key is not configured.');
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
     const systemPrompt = buildIngredientsSystemPrompt(userProfile);
 
     const requestBody = {
@@ -208,7 +208,7 @@ export class GeminiProvider implements AIProvider {
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey) throw new Error('Gemini API key is not configured.');
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`;
     
     const prompt = `You are a nutrition expert. I have a list of food items or ingredients: ${JSON.stringify(ingredientNames)}.
 For each item, provide detailed information. 
