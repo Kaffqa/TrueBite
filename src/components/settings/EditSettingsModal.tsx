@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Save, ShieldAlert, Heart, Utensils, Ruler, Weight as WeightIcon } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { X, Save, ShieldAlert, Heart, Utensils, Ruler, Weight as WeightIcon, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Options from Onboarding
@@ -8,6 +8,61 @@ const MEDICAL = ['Diabetes Type 1', 'Diabetes Type 2', 'Hypertension', 'Celiac D
 const DIET = ['Vegetarian', 'Vegan', 'Pescatarian', 'Keto', 'Paleo', 'Halal', 'Kosher', 'Low Carb'];
 const ACTIVITY_LEVELS = ['sedentary', 'lightly_active', 'moderately_active', 'very_active', 'extra_active'];
 const GOALS = ['lose_weight_fast', 'lose_weight_gradual', 'maintain_weight', 'gain_muscle'];
+
+function CustomSelect({ value, onChange, options }: { value: string, onChange: (val: string) => void, options: {label: string, value: string}[] }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const selectRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (selectRef.current && !selectRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedLabel = options.find(o => o.value === value)?.label || value;
+
+  return (
+    <div className="relative" ref={selectRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-3 py-2 bg-white border border-[#c5d1c9] rounded-[4px] text-sm text-left flex items-center justify-between focus:outline-none focus:border-[#1a3825] font-sans"
+      >
+        <span className="truncate text-[#1e4832]">{selectedLabel}</span>
+        <ChevronDown size={14} className={`text-[#8ba797] transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div 
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: 0.15 }}
+            className="absolute z-50 w-full mt-1 bg-white border border-[#c5d1c9] rounded-[4px] shadow-lg max-h-60 overflow-y-auto"
+          >
+            {options.map((option) => (
+              <div
+                key={option.value}
+                onClick={() => {
+                  onChange(option.value);
+                  setIsOpen(false);
+                }}
+                className={`px-3 py-2 text-sm cursor-pointer hover:bg-[#f0f5f2] hover:text-[#1a3825] transition-colors ${value === option.value ? 'bg-[#e8efe9] text-[#1a3825] font-medium' : 'text-[#333]'}`}
+              >
+                {option.label}
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 function MultiSelectPill({ label, selected, onClick }: { label: string, selected: boolean, onClick: () => void }) {
   return (
@@ -41,6 +96,10 @@ export default function EditSettingsModal({ isOpen, onClose, profile, onSave }: 
   });
 
   const [isSaving, setIsSaving] = useState(false);
+
+  const [customAllergy, setCustomAllergy] = useState('');
+  const [customMedical, setCustomMedical] = useState('');
+  const [customDiet, setCustomDiet] = useState('');
 
   const toggleArrayItem = (key: string, item: string) => {
     setFormData((prev: any) => {
@@ -127,37 +186,33 @@ export default function EditSettingsModal({ isOpen, onClose, profile, onSave }: 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-mono text-[#1e4832] mb-1">Gender</label>
-                <select 
-                  value={formData.gender}
-                  onChange={(e) => setFormData({...formData, gender: e.target.value})}
-                  className="w-full px-3 py-2 bg-white border border-[#c5d1c9] rounded-[4px] text-sm focus:outline-none focus:border-[#1a3825] font-sans"
-                >
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
+                <CustomSelect 
+                  value={formData.gender || 'male'}
+                  onChange={(val) => setFormData({...formData, gender: val})}
+                  options={[
+                    { label: 'Male', value: 'male' },
+                    { label: 'Female', value: 'female' },
+                    { label: 'Other', value: 'other' }
+                  ]}
+                />
               </div>
               <div>
                 <label className="block text-xs font-mono text-[#1e4832] mb-1">Goal</label>
-                <select 
-                  value={formData.goal}
-                  onChange={(e) => setFormData({...formData, goal: e.target.value})}
-                  className="w-full px-3 py-2 bg-white border border-[#c5d1c9] rounded-[4px] text-sm focus:outline-none focus:border-[#1a3825] font-sans"
-                >
-                  {GOALS.map(g => <option key={g} value={g}>{snakeToTitle(g)}</option>)}
-                </select>
+                <CustomSelect 
+                  value={formData.goal || 'maintain_weight'}
+                  onChange={(val) => setFormData({...formData, goal: val})}
+                  options={GOALS.map(g => ({ label: snakeToTitle(g), value: g }))}
+                />
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-mono text-[#1e4832] mb-1">Activity Level</label>
-              <select 
-                value={formData.activity_level}
-                onChange={(e) => setFormData({...formData, activity_level: e.target.value})}
-                className="w-full px-3 py-2 bg-white border border-[#c5d1c9] rounded-[4px] text-sm focus:outline-none focus:border-[#1a3825] font-sans"
-              >
-                {ACTIVITY_LEVELS.map(a => <option key={a} value={a}>{snakeToTitle(a)}</option>)}
-              </select>
+                <CustomSelect 
+                  value={formData.activity_level || 'sedentary'}
+                  onChange={(val) => setFormData({...formData, activity_level: val})}
+                  options={ACTIVITY_LEVELS.map(a => ({ label: snakeToTitle(a), value: a }))}
+                />
             </div>
           </section>
 
@@ -167,29 +222,77 @@ export default function EditSettingsModal({ isOpen, onClose, profile, onSave }: 
             
             <div>
               <label className="flex items-center gap-2 text-xs font-mono text-[#1e4832] mb-2"><ShieldAlert size={14}/> Allergies</label>
-              <div className="flex flex-wrap gap-2">
-                {ALLERGIES.map(item => (
-                  <MultiSelectPill key={item} label={item} selected={formData.allergies.includes(item)} onClick={() => toggleArrayItem('allergies', item)} />
+              <div className="flex flex-wrap gap-2 mb-2">
+                {Array.from(new Set([...ALLERGIES, ...formData.allergies])).map(item => (
+                  <MultiSelectPill key={item as string} label={item as string} selected={formData.allergies.includes(item)} onClick={() => toggleArrayItem('allergies', item as string)} />
                 ))}
               </div>
+              <input 
+                type="text" 
+                placeholder="+ Add custom allergy (Enter)"
+                value={customAllergy}
+                onChange={(e) => setCustomAllergy(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && customAllergy.trim()) {
+                    e.preventDefault();
+                    if (!formData.allergies.includes(customAllergy.trim())) {
+                      toggleArrayItem('allergies', customAllergy.trim());
+                    }
+                    setCustomAllergy('');
+                  }
+                }}
+                className="w-full bg-transparent border-b border-[#c0d4c8] focus:border-[#1e4832] py-2 font-mono text-[11px] text-[#1e4832] placeholder:text-[#a4b5aa] focus:outline-none transition-colors"
+              />
             </div>
 
             <div>
               <label className="flex items-center gap-2 text-xs font-mono text-[#1e4832] mb-2"><Heart size={14}/> Medical Conditions</label>
-              <div className="flex flex-wrap gap-2">
-                {MEDICAL.map(item => (
-                  <MultiSelectPill key={item} label={item} selected={formData.medical_conditions.includes(item)} onClick={() => toggleArrayItem('medical_conditions', item)} />
+              <div className="flex flex-wrap gap-2 mb-2">
+                {Array.from(new Set([...MEDICAL, ...formData.medical_conditions])).map(item => (
+                  <MultiSelectPill key={item as string} label={item as string} selected={formData.medical_conditions.includes(item)} onClick={() => toggleArrayItem('medical_conditions', item as string)} />
                 ))}
               </div>
+              <input 
+                type="text" 
+                placeholder="+ Add custom medical condition (Enter)"
+                value={customMedical}
+                onChange={(e) => setCustomMedical(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && customMedical.trim()) {
+                    e.preventDefault();
+                    if (!formData.medical_conditions.includes(customMedical.trim())) {
+                      toggleArrayItem('medical_conditions', customMedical.trim());
+                    }
+                    setCustomMedical('');
+                  }
+                }}
+                className="w-full bg-transparent border-b border-[#c0d4c8] focus:border-[#1e4832] py-2 font-mono text-[11px] text-[#1e4832] placeholder:text-[#a4b5aa] focus:outline-none transition-colors"
+              />
             </div>
 
             <div>
               <label className="flex items-center gap-2 text-xs font-mono text-[#1e4832] mb-2"><Utensils size={14}/> Dietary Preferences</label>
-              <div className="flex flex-wrap gap-2">
-                {DIET.map(item => (
-                  <MultiSelectPill key={item} label={item} selected={formData.dietary_preferences.includes(item)} onClick={() => toggleArrayItem('dietary_preferences', item)} />
+              <div className="flex flex-wrap gap-2 mb-2">
+                {Array.from(new Set([...DIET, ...formData.dietary_preferences])).map(item => (
+                  <MultiSelectPill key={item as string} label={item as string} selected={formData.dietary_preferences.includes(item)} onClick={() => toggleArrayItem('dietary_preferences', item as string)} />
                 ))}
               </div>
+              <input 
+                type="text" 
+                placeholder="+ Add custom diet (Enter)"
+                value={customDiet}
+                onChange={(e) => setCustomDiet(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && customDiet.trim()) {
+                    e.preventDefault();
+                    if (!formData.dietary_preferences.includes(customDiet.trim())) {
+                      toggleArrayItem('dietary_preferences', customDiet.trim());
+                    }
+                    setCustomDiet('');
+                  }
+                }}
+                className="w-full bg-transparent border-b border-[#c0d4c8] focus:border-[#1e4832] py-2 font-mono text-[11px] text-[#1e4832] placeholder:text-[#a4b5aa] focus:outline-none transition-colors"
+              />
             </div>
 
           </section>

@@ -186,6 +186,9 @@ const MultiSelectPill = ({ label, selected, onClick }: any) => (
 );
 
 const StepDietStyles = ({ data, updateData }: any) => {
+  const [customDiet, setCustomDiet] = React.useState('');
+  const [customMedical, setCustomMedical] = React.useState('');
+
   const toggleDiet = (item: string) => {
     const current = data.dietary_preferences || [];
     const newItems = current.includes(item) ? current.filter((i: string) => i !== item) : [...current, item];
@@ -197,6 +200,36 @@ const StepDietStyles = ({ data, updateData }: any) => {
     updateData({ medical_conditions: newItems });
   };
 
+  const addCustomDiet = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && customDiet.trim() !== '') {
+      e.preventDefault();
+      const current = data.dietary_preferences || [];
+      if (!current.includes(customDiet.trim())) {
+        updateData({ dietary_preferences: [...current, customDiet.trim()] });
+      }
+      setCustomDiet('');
+    }
+  };
+
+  const addCustomMedical = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && customMedical.trim() !== '') {
+      e.preventDefault();
+      const current = data.medical_conditions || [];
+      if (!current.includes(customMedical.trim())) {
+        updateData({ medical_conditions: [...current, customMedical.trim()] });
+      }
+      setCustomMedical('');
+    }
+  };
+
+  const predefinedDiets = ['Vegetarian', 'Vegan', 'Pescatarian', 'Keto', 'Paleo', 'Halal', 'Kosher', 'Low Carb'];
+  const currentDiets = data.dietary_preferences || [];
+  const allDiets = [...predefinedDiets, ...currentDiets.filter((item: string) => !predefinedDiets.includes(item))];
+
+  const predefinedMedical = ['Diabetes Type 1', 'Diabetes Type 2', 'Hypertension', 'Celiac Disease', 'IBS', 'GERD', 'PCOS'];
+  const currentMedical = data.medical_conditions || [];
+  const allMedical = [...predefinedMedical, ...currentMedical.filter((item: string) => !predefinedMedical.includes(item))];
+
   return (
     <div className="flex flex-col items-center w-full max-w-lg mx-auto space-y-8">
       <div className="text-center">
@@ -207,31 +240,65 @@ const StepDietStyles = ({ data, updateData }: any) => {
 
       <div className="w-full">
         <h4 className="text-sm text-[#a4b5aa] font-mono mb-3 text-left">Dietary Preferences</h4>
-        <div className="flex flex-wrap gap-2">
-          {['Vegetarian', 'Vegan', 'Pescatarian', 'Keto', 'Paleo', 'Halal', 'Kosher', 'Low Carb'].map(item => (
-            <MultiSelectPill key={item} label={item} selected={(data.dietary_preferences || []).includes(item)} onClick={() => toggleDiet(item)} />
+        <div className="flex flex-wrap gap-2 mb-3">
+          {allDiets.map((item: string) => (
+            <MultiSelectPill key={item} label={item} selected={currentDiets.includes(item)} onClick={() => toggleDiet(item)} />
           ))}
         </div>
+        <input 
+          type="text" 
+          placeholder="+ Add custom diet (press Enter)"
+          value={customDiet}
+          onChange={(e) => setCustomDiet(e.target.value)}
+          onKeyDown={addCustomDiet}
+          className="w-full bg-transparent border-b border-[#c0d4c8] focus:border-[#1e4832] py-2 font-mono text-[12px] text-[#1e4832] placeholder:text-[#a4b5aa] focus:outline-none transition-colors"
+        />
       </div>
 
       <div className="w-full">
         <h4 className="text-sm text-[#a4b5aa] font-mono mb-3 text-left">Medical Conditions</h4>
-        <div className="flex flex-wrap gap-2">
-          {['Diabetes Type 1', 'Diabetes Type 2', 'Hypertension', 'Celiac Disease', 'IBS', 'GERD', 'PCOS'].map(item => (
-            <MultiSelectPill key={item} label={item} selected={(data.medical_conditions || []).includes(item)} onClick={() => toggleMedical(item)} />
+        <div className="flex flex-wrap gap-2 mb-3">
+          {allMedical.map((item: string) => (
+            <MultiSelectPill key={item} label={item} selected={currentMedical.includes(item)} onClick={() => toggleMedical(item)} />
           ))}
         </div>
+        <input 
+          type="text" 
+          placeholder="+ Add other condition (press Enter)"
+          value={customMedical}
+          onChange={(e) => setCustomMedical(e.target.value)}
+          onKeyDown={addCustomMedical}
+          className="w-full bg-transparent border-b border-[#c0d4c8] focus:border-[#1e4832] py-2 font-mono text-[12px] text-[#1e4832] placeholder:text-[#a4b5aa] focus:outline-none transition-colors"
+        />
       </div>
     </div>
   );
 };
 
 const StepAllergies = ({ data, updateData }: any) => {
+  const [customInput, setCustomInput] = React.useState('');
+  
   const toggleItem = (item: string) => {
     const current = data.allergies || [];
     const newItems = current.includes(item) ? current.filter((i: string) => i !== item) : [...current, item];
     updateData({ allergies: newItems });
   };
+
+  const addCustomItem = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && customInput.trim() !== '') {
+      e.preventDefault();
+      const current = data.allergies || [];
+      if (!current.includes(customInput.trim())) {
+        updateData({ allergies: [...current, customInput.trim()] });
+      }
+      setCustomInput('');
+    }
+  };
+
+  const predefined = ['Peanuts', 'Tree Nuts', 'Milk', 'Eggs', 'Wheat', 'Soy', 'Fish', 'Shellfish', 'Lactose', 'Gluten'];
+  const currentSelections = data.allergies || [];
+  const customSelections = currentSelections.filter((item: string) => !predefined.includes(item));
+  const allItems = [...predefined, ...customSelections];
 
   return (
     <div className="flex flex-col items-center w-full max-w-lg mx-auto space-y-6">
@@ -240,10 +307,20 @@ const StepAllergies = ({ data, updateData }: any) => {
         <h3 className="text-2xl font-mono font-semibold text-[#1e4832]">Allergies</h3>
         <p className="text-sm text-[#a0b0a6] font-mono mt-1">Select any ingredients you need to avoid</p>
       </div>
-      <div className="flex flex-wrap justify-center gap-3">
-        {['Peanuts', 'Tree Nuts', 'Milk', 'Eggs', 'Wheat', 'Soy', 'Fish', 'Shellfish', 'Lactose', 'Gluten'].map(item => (
-          <MultiSelectPill key={item} label={item} selected={(data.allergies || []).includes(item)} onClick={() => toggleItem(item)} />
+      <div className="flex flex-wrap justify-center gap-3 w-full">
+        {allItems.map((item: string) => (
+          <MultiSelectPill key={item} label={item} selected={currentSelections.includes(item)} onClick={() => toggleItem(item)} />
         ))}
+      </div>
+      <div className="w-full mt-4 flex items-center justify-center">
+        <input 
+          type="text" 
+          placeholder="+ Add other allergy (press Enter)"
+          value={customInput}
+          onChange={(e) => setCustomInput(e.target.value)}
+          onKeyDown={addCustomItem}
+          className="w-full sm:w-auto min-w-[260px] text-center bg-transparent border-b border-[#c0d4c8] focus:border-[#1e4832] px-4 py-2 font-mono text-[13px] text-[#1e4832] placeholder:text-[#a4b5aa] focus:outline-none transition-colors"
+        />
       </div>
     </div>
   );
