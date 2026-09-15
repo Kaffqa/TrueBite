@@ -300,9 +300,9 @@ const RecentScansCard = ({ scans, loading }: { scans: any[], loading: boolean })
                     </div>
                   </div>
                 </div>
-                <div className={`min-w-[100px] px-3 py-1.5 ${status.bg} ${status.text} text-[10px] font-mono font-bold rounded-[4px] flex-shrink-0 flex items-center justify-center gap-1.5 capitalize tracking-wider`}>
-                  {status.icon && React.createElement(status.icon, { size: 12, weight: "fill" })}
-                  {status.label}
+                <div className={`w-8 h-8 md:w-[130px] md:h-auto md:py-2 ${status.bg} ${status.text} text-[10px] font-mono font-bold rounded-[4px] flex-shrink-0 flex items-center justify-center gap-1.5 capitalize tracking-wider`}>
+                  {status.icon && React.createElement(status.icon, { size: 14, weight: "fill", className: "shrink-0" })}
+                  <span className="hidden md:block">{status.label}</span>
                 </div>
               </div>
             );
