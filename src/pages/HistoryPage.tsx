@@ -314,90 +314,127 @@ export function HistoryPage() {
     }, 0);
     
     return (
-      <div className="bg-white rounded-[4px] border border-[#e8efe9] shadow-sm overflow-hidden">
+      <div className="bg-white rounded-[4px] border border-[#e8efe9] shadow-sm overflow-hidden mb-5">
         {/* Section Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4">
+        <div className="flex items-center justify-between px-5 pt-5 pb-4 border-b border-dashed border-[#e8efe9]">
           <div className="flex items-center gap-3">
-            <AppleEmoji emoji={emoji} className="w-7 h-7" />
-            <h2 className="font-serif text-[22px] text-[#1e4832]">{title}</h2>
+            <AppleEmoji emoji={emoji} className="w-6 h-6" />
+            <div className="flex flex-col md:flex-row md:items-center md:gap-4">
+              <h2 className="font-serif text-[20px] text-[#1e4832] leading-none mb-1 md:mb-0">{title}</h2>
+              {/* Mobile Calories (hidden on md) */}
+              <div className="flex md:hidden items-center gap-1">
+                <Lightning size={14} weight="fill" style={{ fill: 'url(#lightning-grad-history)' }} />
+                <span className="font-mono text-[11px] text-[#5a7a68] font-bold">
+                  {Math.round(totalCals)} kcal
+                </span>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5">
-              <Lightning size={18} weight="fill" style={{ fill: 'url(#lightning-grad-history)' }} className="-mt-0.5" />
-              <span className="font-mono text-[13px] text-[#1e4832]">
+          
+          <div className="flex items-center gap-4">
+            {/* Desktop Calories (hidden on mobile) */}
+            <div className="hidden md:flex items-center gap-1">
+              <Lightning size={14} weight="fill" style={{ fill: 'url(#lightning-grad-history)' }} />
+              <span className="font-mono text-[11px] text-[#5a7a68] font-bold">
                 {Math.round(totalCals)} kcal
               </span>
             </div>
+            
             <button 
               onClick={() => openAddModal(mealType)}
-              className="bg-gradient-to-b from-[#5a8069] to-[#1a3825] text-white px-4 py-2 rounded-[4px] font-mono text-[11px] font-normal flex items-center gap-1.5 shadow-md hover:brightness-110 active:scale-95 transition-all"
+              className="w-8 h-8 md:w-9 md:h-9 bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#c0d4c8] text-white rounded-[4px] flex items-center justify-center shadow-md hover:brightness-110 active:scale-95 transition-all shrink-0"
+              aria-label={`Add food to ${title}`}
             >
-              <Plus size={12} weight="bold" /> Add Food
+              <Plus size={16} weight="bold" />
             </button>
           </div>
         </div>
 
         {/* Items */}
-        <div className="px-6 pb-5">
+        <div className="px-5 pb-5 pt-2">
           {items.length === 0 ? (
-            <div className="py-10 flex flex-col items-center justify-center gap-4">
-              <p className="font-serif text-[18px] italic text-[#6b8274]">
+            <div className="py-6 flex flex-col items-center justify-center gap-5">
+              <p className="font-serif text-[16px] text-[#6b8274]">
                 No meals logged for {title.toLowerCase()} yet.
               </p>
               <Link
                 to="/app/scan"
-                className="bg-gradient-to-b from-[#5a8069] to-[#1a3825] text-white px-8 py-3 rounded-[4px] font-mono text-[12px] font-normal flex items-center gap-2 shadow-md hover:brightness-110 active:scale-95 transition-all"
+                className="w-[90%] max-w-[320px] md:w-auto md:max-w-none mx-auto bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#c0d4c8] text-white px-8 md:px-10 py-3.5 md:py-3 rounded-[4px] font-mono text-[13px] md:text-[12px] font-medium flex items-center justify-center gap-2 shadow-md hover:brightness-110 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 hover:shadow-[0_8px_16px_rgba(0,0,0,0.2)] transition-all duration-200"
               >
-                <PhosphorScan size={16} weight="bold" /> Scan Your Meals
+                <PhosphorScan size={18} weight="fill" /> Scan Your Meals
               </Link>
             </div>
           ) : (
             <div className="flex flex-col divide-y divide-[#f0f5f2]">
               {items.map((scan) => {
                 const isLogged = scan.meal_logs && scan.meal_logs.length > 0;
+                // Use a muted style for items that aren't logged yet
+                const opacityClass = isLogged ? 'opacity-100' : 'opacity-60';
+                
                 return (
                 <div 
                   key={scan.id} 
                   onClick={() => navigate(`/app/scan/${scan.id}`)}
-                  className="flex items-center gap-4 py-3.5 hover:bg-[#fafcfb] -mx-2 px-2 rounded-[4px] transition-colors cursor-pointer group"
+                  className={`flex items-center gap-4 py-4 hover:bg-[#fafcfb] -mx-2 px-2 rounded-[4px] transition-colors cursor-pointer group ${opacityClass}`}
                 >
                   {/* Food Thumbnail */}
-                  <div className="w-10 h-10 rounded-[4px] flex items-center justify-center shrink-0 overflow-hidden">
+                  <div className="w-8 h-8 md:w-11 md:h-11 rounded-[4px] flex items-center justify-center shrink-0 bg-[#f7f9f8] overflow-hidden border border-[#e8efe9]/50">
                     {scan.image_url ? (
-                      <img src={scan.image_url} alt="" className="w-full h-full object-cover rounded-[4px]" />
+                      <img src={scan.image_url} alt="" className="w-full h-full object-cover" />
                     ) : (
-                      <AppleEmoji emoji={guessEmoji(scan.meal_title || '')} className="w-6 h-6" />
+                      <AppleEmoji emoji={guessEmoji(scan.meal_title || '')} className="w-5 h-5 md:w-7 md:h-7" />
                     )}
                   </div>
 
                   {/* Food Info */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-serif text-[15px] text-[#1e4832] truncate group-hover:text-[#2d6b45] transition-colors">
+                    <h3 className="font-serif text-[14px] md:text-[16px] text-[#1e4832] truncate group-hover:text-[#2d6b45] transition-colors mb-1">
                       {scan.meal_title || 'Unknown Meal'}
                     </h3>
-                    <p className="font-mono text-[10px] text-[#8ba797] tracking-wide mt-0.5 truncate">
-                      {format(new Date(scan.created_at), 'hh:mm a')}
-                      {' | '}
-                      <span className="text-[#1e4832] font-bold">{Math.round(scan.total_calories || 0)} kcal</span>
-                      {' | '}
-                      {Math.round(scan.total_carbs_g || 0)}g Carbs
-                      {' | '}
-                      {Math.round(scan.total_protein_g || 0)}g Protein
-                      {' | '}
-                      {Math.round(scan.total_fat_g || 0)}g Fat
-                    </p>
+                    <div className="flex flex-col md:flex-row md:items-center font-mono text-[9px] md:text-[10px] text-[#a4b5aa] tracking-wide">
+                      <div className="truncate mb-0.5 md:mb-0">
+                        {format(new Date(scan.created_at), 'hh:mm a')} 
+                        <span className="mx-1.5 md:mx-2 text-[#d1dfd6]">|</span> 
+                        {Math.round(scan.total_calories || 0)} kcal 
+                        <span className="mx-1.5 md:mx-2 text-[#d1dfd6]">|</span>
+                        {Math.round(scan.total_carbs_g || 0)}g Carbs
+                        <span className="hidden md:inline mx-1.5 md:mx-2 text-[#d1dfd6]">|</span>
+                      </div>
+                      <div className="truncate">
+                        {Math.round(scan.total_protein_g || 0)}g Protein
+                        <span className="mx-1.5 md:mx-2 text-[#d1dfd6]">|</span>
+                        {Math.round(scan.total_fat_g || 0)}g Fat
+                      </div>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
-                    {/* Logged Badge */}
-                    <div className={`px-4 py-1.5 rounded-[4px] border flex items-center justify-center font-mono text-[11px] font-bold ${isLogged ? 'bg-[#f0f5f2] text-[#166534] border-[#c5d1c9]' : 'bg-white text-[#8ba797] border-[#e8efe9]'}`} style={{ minWidth: '96px' }}>
-                      {isLogged ? 'Logged' : 'Not Logged'}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {/* Logged Status Badge */}
+                    <div 
+                      className={`h-7 px-2 min-w-[28px] sm:w-[100px] rounded-[4px] flex items-center justify-center gap-1.5 shadow-sm font-mono text-[10px] font-bold ${
+                        isLogged 
+                          ? 'bg-[#e8efe9] text-[#1e4832]' 
+                          : 'bg-white border border-[#e8efe9] text-[#a4b5aa] transition-colors'
+                      }`}
+                      title={isLogged ? "Logged" : "Not Logged"}
+                    >
+                      {isLogged ? (
+                        <>
+                          <CheckCircle size={14} weight="fill" className="shrink-0" />
+                          <span className="hidden sm:block">Logged</span>
+                        </>
+                      ) : (
+                        <>
+                          <Plus size={14} weight="bold" className="shrink-0" />
+                          <span className="hidden sm:block">Not Logged</span>
+                        </>
+                      )}
                     </div>
 
-                    {/* Safety Badge - blocky */}
-                    <div className={`px-4 py-1.5 rounded-[4px] border flex items-center gap-1.5 font-mono text-[11px] font-bold ${getSafetyBadgeStyle(scan.safety_status)}`} style={{ minWidth: '96px', justifyContent: 'center' }}>
+                    {/* Safety Badge */}
+                    <div className={`h-7 px-2 min-w-[32px] sm:w-[85px] rounded-[4px] flex items-center justify-center gap-1.5 shadow-sm font-mono text-[10px] font-bold ${getSafetyBadgeStyle(scan.safety_status)}`}>
                       {getSafetyIcon(scan.safety_status)}
-                      {getSafetyLabel(scan.safety_status)}
+                      <span className="hidden sm:block">{getSafetyLabel(scan.safety_status)}</span>
                     </div>
                   </div>
                 </div>
@@ -422,14 +459,23 @@ export function HistoryPage() {
       className="pb-24"
     >
       {/* Header Card - blocky with background */}
-      <div className="bg-white rounded-[4px] border border-[#e8efe9] shadow-sm p-6 lg:p-8 mb-5 flex flex-col md:flex-row justify-between gap-8 md:gap-8">
+      <div className="bg-white rounded-[4px] border border-[#e8efe9] shadow-sm p-6 lg:p-8 mb-5 flex flex-col md:flex-row items-center md:items-start justify-between gap-6 md:gap-8 text-center md:text-left">
         
-        {/* Left Side: Title and Calories */}
-        <div className="flex flex-col flex-1 w-full justify-between pr-0 md:pr-12">
-          <h1 className="text-[32px] font-serif text-[#1e4832] leading-none mb-8">Daily Journal</h1>
+        {/* Left Side: Title and Calories (Desktop) / Top Section (Mobile) */}
+        <div className="flex flex-col flex-1 w-full justify-between pr-0 md:pr-12 items-center md:items-start">
+          <h1 className="text-[32px] font-serif text-[#1e4832] leading-none mb-6 md:mb-8">Daily Journal</h1>
+          
+          {/* Mobile Date Picker (shows after title on mobile) */}
+          <div className="md:hidden mb-6 w-full max-w-[280px]">
+            <CustomDatePicker 
+              selectedDate={selectedDate} 
+              onChange={setSelectedDate} 
+              dateLabel={dateLabel} 
+            />
+          </div>
           
           {/* Calorie Summary */}
-          <div className="relative w-full">
+          <div className="relative w-full max-w-[320px] md:max-w-none flex flex-col items-center md:items-start">
             <svg width="0" height="0" className="absolute">
               <linearGradient id="lightning-grad-history" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop stopColor="#e55941" offset="0%" />
@@ -444,34 +490,37 @@ export function HistoryPage() {
             </svg>
             <div className="flex items-center gap-2 mb-3">
               <Lightning size={20} weight="fill" style={{ fill: 'url(#lightning-grad-history)' }} className="mr-0.5 -mt-0.5" />
-              <span className="font-mono text-[14px] text-[#1e4832]">
+              <span className="font-mono text-[14px] text-[#1e4832] font-bold">
                 {currentCals} of {targetCals} kcal consumed
               </span>
             </div>
-            <div className="w-full h-2 bg-[#e8efe9] rounded-[4px] overflow-hidden mb-3">
+            <div className="w-full h-1.5 bg-[#e8efe9] rounded-[4px] overflow-hidden mb-4">
               <div 
                 className="h-full bg-[#1a3825] rounded-[4px] transition-all duration-1000 ease-out" 
                 style={{ width: `${progressPercent}%` }}
               />
             </div>
-            <p className="font-mono text-[11px] text-[#8ba797] italic">
+            <p className="font-mono text-[10px] text-[#a4b5aa] leading-relaxed max-w-[280px] md:max-w-none">
               Every scan lands here automatically. Adjust a portion and the calories update with it.
             </p>
           </div>
         </div>
 
-        {/* Right Side: Date Picker and Streak */}
-        <div className="flex flex-col items-center md:items-end justify-between gap-8 shrink-0">
-          <CustomDatePicker 
-            selectedDate={selectedDate} 
-            onChange={setSelectedDate} 
-            dateLabel={dateLabel} 
-          />
+        {/* Right Side: Date Picker and Streak (Desktop) / Bottom Section (Mobile) */}
+        <div className="flex flex-col items-center md:items-end justify-between gap-8 shrink-0 mt-2 md:mt-0 w-full md:w-auto">
+          {/* Desktop Date Picker (hidden on mobile) */}
+          <div className="hidden md:block">
+            <CustomDatePicker 
+              selectedDate={selectedDate} 
+              onChange={setSelectedDate} 
+              dateLabel={dateLabel} 
+            />
+          </div>
 
           <div className="flex flex-col items-center w-full max-w-[260px]">
             <div className="flex items-center justify-center gap-2 mb-3">
-              <FireSimple size={26} weight="fill" style={{ fill: 'url(#fire-grad-history)' }} className="-mt-1" />
-              <span className="font-serif text-[22px] text-[#1e4832]">{streakCount} Days Streak</span>
+              <FireSimple size={22} weight="fill" style={{ fill: 'url(#fire-grad-history)' }} className="-mt-1" />
+              <span className="font-serif text-[20px] text-[#5a7a68]">{streakCount} Days Streak</span>
             </div>
             
             <div className="flex justify-center gap-2 w-full">
@@ -483,13 +532,13 @@ export function HistoryPage() {
                     onClick={() => d.fullDate && setSelectedDate(d.fullDate)}
                     className="flex flex-col items-center gap-1.5 cursor-pointer group w-[30px] shrink-0 relative"
                   >
-                    <span className={`relative z-10 text-[11px] font-sans transition-colors duration-300 ${isSelected ? 'font-bold text-[#1e4832]' : 'text-[#8ba797] group-hover:text-[#6b8274]'}`}>{d.day}</span>
+                    <span className={`relative z-10 text-[11px] font-sans transition-colors duration-300 ${isSelected ? 'font-bold text-[#1e4832]' : 'text-[#8ba797] group-hover:text-[#6b8274]'}`}>{d.day.charAt(0)}</span>
                     <span className={`relative z-10 text-[11px] font-sans transition-colors duration-300 ${isSelected ? 'font-bold text-[#1e4832]' : 'text-[#a4b5aa] group-hover:text-[#8ba797]'}`}>{d.date}</span>
-                    <div className={`relative z-10 w-[30px] h-[30px] shrink-0 rounded-full flex items-center justify-center transition-colors duration-300 ${d.active ? 'bg-[#2a2d2a]' : 'bg-[#3b473f]'}`}>
+                    <div className={`relative z-10 w-[24px] h-[24px] shrink-0 rounded-full flex items-center justify-center transition-colors duration-300 ${d.active ? 'bg-[#2a2d2a]' : 'bg-[#3b473f]'}`}>
                       {d.active ? (
-                        <FireSimple size={15} weight="fill" style={{ fill: 'url(#fire-grad-history)' }} />
+                        <FireSimple size={12} weight="fill" style={{ fill: 'url(#fire-grad-history)' }} />
                       ) : (
-                        <FireSimple size={15} weight="fill" className="text-[#64746b]" />
+                        <FireSimple size={12} weight="fill" className="text-[#64746b]" />
                       )}
                     </div>
                   </div>

@@ -11,7 +11,7 @@ function NavItem({ to, exact, icon: Icon, label }: { to: string, exact?: boolean
           {isActive && (
             <motion.div
               layoutId="sidebar-active"
-              className="absolute inset-0 bg-gradient-to-b from-[#6b9279] to-[#1a3825] rounded-[4px] shadow-md z-0"
+              className="absolute inset-0 bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#c0d4c8] rounded-[4px] shadow-md z-0"
               initial={false}
               transition={{ type: "spring", stiffness: 350, damping: 30 }}
             />

@@ -96,7 +96,7 @@ const SimpleInput = ({ label, value, onChange, type = "text" }: any) => (
 // Stepper
 const Stepper = ({ currentStep }: { currentStep: number }) => {
   const steps = [
-    { id: 0, label: 'Body Metrics', Icon: Ruler },
+    { id: 0, label: 'Basic Info', Icon: Ruler },
     { id: 1, label: 'Diet Styles', Icon: Utensils },
     { id: 2, label: 'Allergies', Icon: ShieldAlert },
     { id: 3, label: 'Your goal', Icon: TargetIcon },
@@ -107,12 +107,12 @@ const Stepper = ({ currentStep }: { currentStep: number }) => {
       {steps.map((step, index) => (
         <React.Fragment key={step.id}>
           <div className="flex flex-col items-center gap-2 relative">
-            <div className={`w-14 h-14 rounded-[2px] flex items-center justify-center relative z-10 transition-colors shadow-sm ${
+            <div className={`w-12 h-12 rounded-[4px] flex items-center justify-center relative z-10 transition-colors shadow-sm ${
               currentStep >= index 
-                ? 'bg-gradient-to-b from-[#88ba9d] to-[#173d26] text-white shadow-md border-2 border-[#c0d4c8]' 
-                : 'bg-[#98b0a0] text-white'
+                ? 'bg-gradient-to-b from-[#88ba9d] to-[#173d26] text-white' 
+                : 'bg-gradient-to-b from-[#88ba9d] to-[#173d26] text-white/40 opacity-90'
             }`}>
-              <step.Icon size={24} />
+              <step.Icon size={20} strokeWidth={2.5} />
             </div>
             <span className={`absolute -bottom-8 text-sm whitespace-nowrap font-mono ${
               currentStep === index ? 'text-[#1e4832] font-bold' : 'text-[#a0b0a6]'
@@ -135,10 +135,17 @@ const StepBodyMetrics = ({ data, updateData }: any) => (
   <div className="flex flex-col items-center w-full max-w-sm mx-auto space-y-6">
     <div className="text-center mb-4">
       <p className="text-xs text-[#a0b0a6] uppercase tracking-widest font-mono mb-2">Step 1 Of 4</p>
-      <h3 className="text-2xl font-mono font-semibold text-[#1e4832]">Body Metrics</h3>
-      <p className="text-sm text-[#a0b0a6] font-mono mt-1">Help us personalize your daily targets</p>
+      <h3 className="text-2xl font-mono font-semibold text-[#1e4832]">Basic Info</h3>
+      <p className="text-sm text-[#a0b0a6] font-mono mt-1">Help us personalize your experience</p>
     </div>
+    
     <GenderToggle value={data.gender || 'male'} onChange={(v: string) => updateData({ gender: v })} />
+    
+    <SimpleInput 
+      label="Your Name or Nickname" 
+      value={data.full_name || ''} 
+      onChange={(e: any) => updateData({ full_name: e.target.value })} 
+    />
     <InputWithUnit 
       label="Height" 
       value={data.height_cm || ''} 
@@ -333,7 +340,7 @@ export default function OnboardingPage() {
 
   const isStepValid = () => {
     if (currentStep === 0) {
-      return !!data.height_cm && !!data.weight_kg && !!data.age;
+      return !!data.full_name && !!data.height_cm && !!data.weight_kg && !!data.age;
     }
     if (currentStep === 3) {
       return !!data.activity_level && !!data.health_goal;

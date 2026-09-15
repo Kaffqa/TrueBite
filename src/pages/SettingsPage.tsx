@@ -48,7 +48,7 @@ export default function SettingsPage() {
         <h1 className="font-serif text-3xl text-[#1e4832]">Settings</h1>
         <button 
           onClick={() => setIsEditModalOpen(true)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-b from-[#6b9279] to-[#1a3825] rounded-[4px] text-white font-mono text-[11px] hover:brightness-110 transition-all shadow-md active:scale-95 border border-[#1a3825]"
+          className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#c0d4c8] rounded-[4px] text-white font-mono text-[11px] hover:brightness-110 transition-all shadow-md active:scale-95"
         >
           <Edit3 size={14} /> Edit Profile
         </button>

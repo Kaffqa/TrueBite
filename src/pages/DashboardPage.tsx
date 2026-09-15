@@ -108,21 +108,24 @@ const DailySummaryCard = ({ profile, todaySummary }: any) => {
 
   return (
     <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 lg:p-8 shadow-sm flex flex-col">
-      <div className="flex justify-between items-start mb-8">
-        <div>
-          <h2 className="text-3xl font-serif text-[#1e4832]">{getGreeting()}, {firstName}</h2>
-          <p className="font-mono text-[13px] text-[#6b8274] mt-3 max-w-sm leading-relaxed">
+      <div className="flex flex-col md:flex-row md:justify-between items-start mb-10 md:mb-8 gap-4 md:gap-0">
+        <div className="flex flex-col">
+          <div className="md:hidden font-mono text-[11px] font-bold text-[#6b8274] tracking-widest uppercase mb-4">
+            {dateStr}
+          </div>
+          <h2 className="text-[32px] md:text-3xl font-serif text-[#1e4832] leading-tight">{getGreeting()}, {firstName}</h2>
+          <p className="font-mono text-[12px] md:text-[13px] text-[#6b8274] mt-4 md:mt-3 max-w-sm leading-relaxed">
             {tip}
           </p>
         </div>
-        <div className="font-mono text-[11px] font-bold text-[#6b8274] tracking-widest uppercase">
+        <div className="hidden md:block font-mono text-[11px] font-bold text-[#6b8274] tracking-widest uppercase mt-2">
           {dateStr}
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row items-center gap-8 mb-8">
+      <div className="flex flex-col md:flex-row items-center gap-10 md:gap-8 mb-8">
         {/* Donut Chart */}
-        <div className="relative w-[200px] h-[200px] flex-shrink-0">
+        <div className="relative w-[240px] h-[240px] md:w-[200px] md:h-[200px] flex-shrink-0">
           <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90 overflow-visible">
                <defs>
                  <filter id="soft-rounded" x="-30%" y="-30%" width="160%" height="160%">
@@ -163,7 +166,7 @@ const DailySummaryCard = ({ profile, todaySummary }: any) => {
                </g>
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-[42px] font-serif text-[#1e4832] leading-none">{remaining}</span>
+            <span className="text-[52px] md:text-[42px] font-serif text-[#1e4832] leading-none">{remaining}</span>
             <span className="text-[10px] font-mono text-[#8ba797] uppercase tracking-wider mt-2">Remaining</span>
           </div>
         </div>
@@ -177,9 +180,9 @@ const DailySummaryCard = ({ profile, todaySummary }: any) => {
               <stop stopColor="#e7ac4b" offset="100%" />
             </linearGradient>
           </svg>
-          <div className="flex items-center gap-2 mb-6 text-[#1e4832] font-semibold">
+          <div className="flex items-center gap-2 mb-6 text-[#1e4832] font-normal">
             <Lightning size={22} weight="fill" style={{ fill: 'url(#lightning-grad)' }} className="mr-1 -mt-0.5" />
-            <span className="font-serif text-[17px]">{consumed}</span> 
+            <span className="font-serif text-[18px] md:text-[17px]">{consumed}</span> 
             <span className="font-mono text-xs">of {targetCalories} kcal consumed</span>
           </div>
           
@@ -338,7 +341,7 @@ const ScannerActionCard = ({ scanCount, flagCount, streakDays }: { scanCount: nu
         </p>
       </div>
 
-      <Link to="/app/scan" className="w-full py-4 mb-8 rounded-[4px] bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#c0d4c8] text-white font-mono text-[13px] flex items-center justify-center gap-2 hover:brightness-110 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 hover:shadow-[0_8px_16px_rgba(0,0,0,0.2)] transition-all duration-200 shadow-md">
+      <Link to="/app/scan" className="hidden md:flex w-full py-4 mb-8 rounded-[4px] bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#c0d4c8] text-white font-mono text-[13px] items-center justify-center gap-2 hover:brightness-110 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 hover:shadow-[0_8px_16px_rgba(0,0,0,0.2)] transition-all duration-200 shadow-md">
         <PhosphorScan size={18} weight="fill" />
         Open Scanner
       </Link>
@@ -574,17 +577,28 @@ export default function DashboardPage() {
       animate={{ opacity: 1 }}
       className="w-full h-full pb-8"
     >
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left Column */}
-        <div className="lg:col-span-7 flex flex-col gap-6">
+      <div className="max-w-7xl mx-auto w-full">
+        {/* Mobile Layout (hidden on lg) */}
+        <div className="lg:hidden flex flex-col gap-6">
           <DailySummaryCard profile={profile} todaySummary={todaySummary} />
+          <ScannerActionCard scanCount={totalScans} flagCount={totalFlags} streakDays={streakDays} />
           <RecentScansCard scans={scans} loading={scansLoading} />
+          <IngredientOfDayWidget user={user} profile={profile} />
         </div>
 
-        {/* Right Column */}
-        <div className="lg:col-span-5 flex flex-col gap-6">
-          <ScannerActionCard scanCount={totalScans} flagCount={totalFlags} streakDays={streakDays} />
-          <IngredientOfDayWidget user={user} profile={profile} />
+        {/* Desktop Layout (hidden on mobile) */}
+        <div className="hidden lg:grid lg:grid-cols-12 gap-6">
+          {/* Left Column */}
+          <div className="lg:col-span-7 flex flex-col gap-6">
+            <DailySummaryCard profile={profile} todaySummary={todaySummary} />
+            <RecentScansCard scans={scans} loading={scansLoading} />
+          </div>
+
+          {/* Right Column */}
+          <div className="lg:col-span-5 flex flex-col gap-6">
+            <ScannerActionCard scanCount={totalScans} flagCount={totalFlags} streakDays={streakDays} />
+            <IngredientOfDayWidget user={user} profile={profile} />
+          </div>
         </div>
       </div>
     </motion.div>

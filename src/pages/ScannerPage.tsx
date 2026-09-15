@@ -166,7 +166,7 @@ export default function ScannerPage() {
             <button 
               onClick={handleCapture}
               disabled={isLoading || (!isActive && !selectedFile)}
-              className="flex-1 bg-gradient-to-r from-[#5a8069] to-[#1a3825] hover:brightness-110 active:scale-95 transition-all text-white py-4 rounded-[4px] font-mono text-[13px] flex items-center justify-center gap-3 shadow-md disabled:opacity-50"
+              className="flex-1 bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#c0d4c8] hover:brightness-110 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 hover:shadow-[0_8px_16px_rgba(0,0,0,0.2)] transition-all duration-200 text-white py-4 rounded-[4px] font-mono text-[13px] flex items-center justify-center gap-3 shadow-md disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-md"
             >
               <PhosphorScan size={18} weight="fill" />
               <span>{selectedFile ? "Analyse Photo" : "Capture & Analyse"}</span>
@@ -192,111 +192,219 @@ export default function ScannerPage() {
 
         {/* Right Column: Result Card */}
         {result ? (
-          <div className="bg-white rounded-[4px] border border-[#e8efe9] p-8 flex flex-col shadow-sm overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-serif text-[26px] text-[#1e4832] leading-tight pr-4">{result.mealTitle}</h3>
-              <span className={`shrink-0 w-[110px] justify-center py-2 rounded-[4px] text-[11px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 ${
-                result.safetyStatus === 'safe' ? 'bg-[#bbf7d0] text-[#166534]' :
-                result.safetyStatus === 'caution' ? 'bg-[#fef3c7] text-[#92400e]' :
-                'bg-[#fecaca] text-[#991b1b]'
-              }`}>
-                {result.safetyStatus === 'safe' && <ShieldCheck size={14} weight="fill" />}
-                {result.safetyStatus === 'caution' && <Warning size={14} weight="fill" />}
-                {result.safetyStatus === 'danger' && <ShieldWarning size={14} weight="fill" />}
-                {result.safetyStatus === 'safe' ? 'Safe' : result.safetyStatus === 'caution' ? 'Flagged' : 'Danger'}
-              </span>
-            </div>
+          <>
+            {/* Desktop View (Original) */}
+            <div className="hidden md:flex bg-white rounded-[4px] border border-[#e8efe9] p-8 flex-col shadow-sm overflow-y-auto h-full">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-serif text-[26px] text-[#1e4832] leading-tight pr-4">{result.mealTitle}</h3>
+                <span className={`shrink-0 w-[110px] justify-center py-2 rounded-[4px] text-[11px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 ${
+                  result.safetyStatus === 'safe' ? 'bg-[#bbf7d0] text-[#166534]' :
+                  result.safetyStatus === 'caution' ? 'bg-[#fef3c7] text-[#92400e]' :
+                  'bg-[#fecaca] text-[#991b1b]'
+                }`}>
+                  {result.safetyStatus === 'safe' && <ShieldCheck size={14} weight="fill" />}
+                  {result.safetyStatus === 'caution' && <Warning size={14} weight="fill" />}
+                  {result.safetyStatus === 'danger' && <ShieldWarning size={14} weight="fill" />}
+                  {result.safetyStatus === 'safe' ? 'Safe' : result.safetyStatus === 'caution' ? 'Flagged' : 'Danger'}
+                </span>
+              </div>
 
-            {result.healthWarnings && result.healthWarnings.length > 0 && (
-              <p className="font-mono text-[12px] text-[#6b8274] mb-6 leading-relaxed">
-                {result.healthWarnings.map((w: any) => typeof w === 'string' ? w : (w.message || w.title || w.detail)).filter(Boolean).join('. ')}
-              </p>
-            )}
+              {result.healthWarnings && result.healthWarnings.length > 0 && (
+                <p className="font-mono text-[12px] text-[#6b8274] mb-6 leading-relaxed">
+                  {result.healthWarnings.map((w: any) => typeof w === 'string' ? w : (w.message || w.title || w.detail)).filter(Boolean).join('. ')}
+                </p>
+              )}
 
-            <div className="grid grid-cols-2 gap-3 mb-6">
-               <div className="bg-[#132c1e] p-4 rounded-[4px] flex flex-col items-center justify-center text-center">
-                 <span className="font-serif text-[32px] text-white">{result.totalNutrition.calories}</span>
-                 <span className="font-mono text-[10px] text-[#8ba797] uppercase tracking-wider mt-1">Kcal</span>
-               </div>
-               <div className="bg-[#132c1e] p-4 rounded-[4px] flex flex-col items-center justify-center text-center">
-                 <span className="font-serif text-[32px] text-white">{result.totalNutrition.proteinG}g</span>
-                 <span className="font-mono text-[10px] text-[#8ba797] uppercase tracking-wider mt-1">Protein</span>
-               </div>
-               <div className="bg-[#132c1e] p-4 rounded-[4px] flex flex-col items-center justify-center text-center">
-                 <span className="font-serif text-[32px] text-white">{result.totalNutrition.carbsG}g</span>
-                 <span className="font-mono text-[10px] text-[#8ba797] uppercase tracking-wider mt-1">Carbs</span>
-               </div>
-               <div className="bg-[#132c1e] p-4 rounded-[4px] flex flex-col items-center justify-center text-center">
-                 <span className="font-serif text-[32px] text-white">{result.totalNutrition.fatG}g</span>
-                 <span className="font-mono text-[10px] text-[#8ba797] uppercase tracking-wider mt-1">Fat</span>
-               </div>
-            </div>
+              <div className="grid grid-cols-2 gap-3 mb-6">
+                 <div className="bg-[#132c1e] p-4 rounded-[4px] flex flex-col items-center justify-center text-center">
+                   <span className="font-serif text-[32px] text-white">{result.totalNutrition.calories}</span>
+                   <span className="font-mono text-[10px] text-[#8ba797] uppercase tracking-wider mt-1">Kcal</span>
+                 </div>
+                 <div className="bg-[#132c1e] p-4 rounded-[4px] flex flex-col items-center justify-center text-center">
+                   <span className="font-serif text-[32px] text-white">{result.totalNutrition.proteinG}g</span>
+                   <span className="font-mono text-[10px] text-[#8ba797] uppercase tracking-wider mt-1">Protein</span>
+                 </div>
+                 <div className="bg-[#132c1e] p-4 rounded-[4px] flex flex-col items-center justify-center text-center">
+                   <span className="font-serif text-[32px] text-white">{result.totalNutrition.carbsG}g</span>
+                   <span className="font-mono text-[10px] text-[#8ba797] uppercase tracking-wider mt-1">Carbs</span>
+                 </div>
+                 <div className="bg-[#132c1e] p-4 rounded-[4px] flex flex-col items-center justify-center text-center">
+                   <span className="font-serif text-[32px] text-white">{result.totalNutrition.fatG}g</span>
+                   <span className="font-mono text-[10px] text-[#8ba797] uppercase tracking-wider mt-1">Fat</span>
+                 </div>
+              </div>
 
-            <div className="space-y-0 mb-8 border-t border-[#e8efe9]">
-              {result.items.map((item: any, i: number) => {
-                const isAllergen = item.detectedAllergens && item.detectedAllergens.length > 0;
-                
-                let badgeClass = '';
-                let label = '';
-                let Icon = null;
+              <div className="space-y-0 mb-8 border-t border-[#e8efe9]">
+                {result.items.map((item: any, i: number) => {
+                  const isAllergen = item.detectedAllergens && item.detectedAllergens.length > 0;
+                  
+                  let badgeClass = '';
+                  let label = '';
+                  let Icon = null;
 
-                if (isAllergen) {
-                  badgeClass = 'bg-[#fecaca] text-[#991b1b]';
-                  label = 'Allergen Alert';
-                  Icon = ShieldWarning;
-                } else if (item.safetyStatus === 'danger') {
-                  badgeClass = 'bg-[#fecaca] text-[#991b1b]';
-                  label = 'Danger';
-                  Icon = ShieldWarning;
-                } else if (item.safetyStatus === 'caution') {
-                  badgeClass = 'bg-[#fef3c7] text-[#92400e]';
-                  label = 'Flagged';
-                  Icon = Warning;
-                } else {
-                  badgeClass = 'bg-[#bbf7d0] text-[#166534]';
-                  label = 'Safe';
-                  Icon = ShieldCheck;
-                }
-                
-                return (
-                  <div key={i} className="py-4 border-b border-[#e8efe9] flex justify-between items-center gap-4">
-                    <div className="flex flex-col flex-1">
-                      <div className="font-serif text-[#1e4832] text-[16px] leading-snug">{item.name}</div>
-                      {isAllergen && (
-                        <div className="font-mono text-[11px] text-[#991b1b] mt-1.5 leading-tight">
-                          Allergen: {item.detectedAllergens.join(', ')}
-                        </div>
-                      )}
+                  if (isAllergen) {
+                    badgeClass = 'bg-[#fecaca] text-[#991b1b]';
+                    label = 'Allergen Alert';
+                    Icon = ShieldWarning;
+                  } else if (item.safetyStatus === 'danger') {
+                    badgeClass = 'bg-[#fecaca] text-[#991b1b]';
+                    label = 'Danger';
+                    Icon = ShieldWarning;
+                  } else if (item.safetyStatus === 'caution') {
+                    badgeClass = 'bg-[#fef3c7] text-[#92400e]';
+                    label = 'Flagged';
+                    Icon = Warning;
+                  } else {
+                    badgeClass = 'bg-[#bbf7d0] text-[#166534]';
+                    label = 'Safe';
+                    Icon = ShieldCheck;
+                  }
+                  
+                  return (
+                    <div key={i} className="py-4 border-b border-[#e8efe9] flex justify-between items-center gap-4">
+                      <div className="flex flex-col flex-1">
+                        <div className="font-serif text-[#1e4832] text-[16px] leading-snug">{item.name}</div>
+                        {isAllergen && (
+                          <div className="font-mono text-[11px] text-[#991b1b] mt-1.5 leading-tight">
+                            Allergen: {item.detectedAllergens.join(', ')}
+                          </div>
+                        )}
+                      </div>
+                      <div className={`shrink-0 w-[120px] justify-center text-[10px] font-mono ${badgeClass} py-2 rounded-[4px] uppercase tracking-wider font-bold flex items-center gap-1.5`}>
+                        <Icon size={12} weight="fill" />
+                        {label}
+                      </div>
                     </div>
-                    <div className={`shrink-0 w-[120px] justify-center text-[10px] font-mono ${badgeClass} py-2 rounded-[4px] uppercase tracking-wider font-bold flex items-center gap-1.5`}>
-                      <Icon size={12} weight="fill" />
-                      {label}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+
+              <div className="mt-auto flex gap-3">
+                 <button 
+                   onClick={async () => {
+                     if (result.safetyStatus !== 'safe') {
+                       await confirmMealLog();
+                     }
+                     navigate('/app/history');
+                   }} 
+                   className="flex-2 w-full py-4 rounded-[4px] bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#c0d4c8] font-mono text-[13px] text-white hover:brightness-110 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 hover:shadow-[0_8px_16px_rgba(0,0,0,0.2)] transition-all duration-200 shadow-md flex justify-center items-center gap-2"
+                 >
+                   + Add to Daily Log
+                 </button>
+                 <button 
+                   onClick={handleReset} 
+                   className="flex-1 py-4 rounded-[4px] border border-[#d1dfd6] font-mono text-[13px] text-[#8ba797] hover:border-[#5a8069] hover:text-[#5a8069] bg-white transition-all shadow-sm flex justify-center items-center gap-2 whitespace-nowrap px-4"
+                 >
+                   <RefreshCw size={16} /> Rescan
+                 </button>
+              </div>
             </div>
 
-            <div className="mt-auto flex gap-3">
-               <button 
-                 onClick={async () => {
-                   if (result.safetyStatus !== 'safe') {
-                     await confirmMealLog();
-                   }
-                   navigate('/app/history');
-                 }} 
-                 className="flex-2 w-full py-4 rounded-[4px] bg-gradient-to-r from-[#5a8069] to-[#1a3825] font-mono text-[13px] text-white hover:brightness-110 active:scale-95 transition-all shadow-md flex justify-center items-center gap-2"
-               >
-                 + Add to Daily Log
-               </button>
-               <button 
-                 onClick={handleReset} 
-                 className="flex-1 py-4 rounded-[4px] border border-[#d1dfd6] font-mono text-[13px] text-[#8ba797] hover:border-[#5a8069] hover:text-[#5a8069] bg-white transition-all shadow-sm flex justify-center items-center gap-2 whitespace-nowrap px-4"
-               >
-                 <RefreshCw size={16} /> Rescan
-               </button>
+            {/* Mobile View (New Design) */}
+            <div className="flex md:hidden bg-white rounded-[4px] border border-[#e8efe9] p-6 flex-col shadow-sm overflow-y-auto">
+              {/* Header / Overview */}
+              <div className="flex flex-col items-center text-center mb-6">
+                <span className={`px-4 py-1.5 rounded-[4px] text-[11px] font-mono font-bold tracking-wider flex items-center gap-2 mb-4 ${
+                  result.safetyStatus === 'safe' ? 'bg-[#bbf7d0] text-[#166534]' :
+                  result.safetyStatus === 'caution' ? 'bg-[#fef3c7] text-[#92400e]' :
+                  'bg-[#fecaca] text-[#991b1b]'
+                }`}>
+                  {result.safetyStatus === 'safe' && <ShieldCheck size={14} weight="fill" />}
+                  {result.safetyStatus === 'caution' && <Warning size={14} weight="fill" />}
+                  {result.safetyStatus === 'danger' && <ShieldWarning size={14} weight="fill" />}
+                  {result.safetyStatus === 'safe' 
+                    ? 'Safe' 
+                    : `${result.items.filter((i: any) => i.safetyStatus === 'caution' || i.safetyStatus === 'danger').length} Flagged`}
+                </span>
+                
+                <h3 className="font-serif text-[32px] md:text-[26px] text-[#1e4832] leading-tight mb-4">{result.mealTitle}</h3>
+
+                {result.healthWarnings && result.healthWarnings.length > 0 && (
+                  <p className="font-mono text-[12px] text-[#6b8274] leading-relaxed max-w-sm">
+                    {result.healthWarnings.map((w: any) => typeof w === 'string' ? w : (w.message || w.title || w.detail)).filter(Boolean).join('. ')}
+                  </p>
+                )}
+              </div>
+
+              {/* Macros */}
+              <div className="grid grid-cols-2 gap-3 mb-8 px-1 md:px-0">
+                 <div className="bg-[#132c1e] py-6 px-2 rounded-[4px] flex flex-col items-center justify-center text-center">
+                   <span className="font-serif text-[42px] leading-none text-white mb-2">{result.totalNutrition.calories}</span>
+                   <span className="font-mono text-[11px] text-[#8ba797]">Kcal</span>
+                 </div>
+                 <div className="bg-[#132c1e] py-6 px-2 rounded-[4px] flex flex-col items-center justify-center text-center">
+                   <span className="font-serif text-[42px] leading-none text-white mb-2">{result.totalNutrition.proteinG}g</span>
+                   <span className="font-mono text-[11px] text-[#8ba797]">Protein</span>
+                 </div>
+                 <div className="bg-[#132c1e] py-6 px-2 rounded-[4px] flex flex-col items-center justify-center text-center">
+                   <span className="font-serif text-[42px] leading-none text-white mb-2">{result.totalNutrition.carbsG}g</span>
+                   <span className="font-mono text-[11px] text-[#8ba797]">Carbs</span>
+                 </div>
+                 <div className="bg-[#132c1e] py-6 px-2 rounded-[4px] flex flex-col items-center justify-center text-center">
+                   <span className="font-serif text-[42px] leading-none text-white mb-2">{result.totalNutrition.fatG}g</span>
+                   <span className="font-mono text-[11px] text-[#8ba797]">Fat</span>
+                 </div>
+              </div>
+
+              {/* Ingredients List */}
+              <div className="space-y-0 mb-8 border-t border-[#e8efe9]">
+                {result.items.map((item: any, i: number) => {
+                  const isAllergen = item.detectedAllergens && item.detectedAllergens.length > 0;
+                  
+                  let badgeClass = '';
+                  let Icon = null;
+
+                  if (isAllergen || item.safetyStatus === 'danger') {
+                    badgeClass = 'bg-[#fecaca] text-[#991b1b]';
+                    Icon = ShieldWarning;
+                  } else if (item.safetyStatus === 'caution') {
+                    badgeClass = 'bg-[#fef3c7] text-[#92400e]';
+                    Icon = Warning;
+                  } else {
+                    badgeClass = 'bg-[#bbf7d0] text-[#166534]';
+                    Icon = ShieldCheck;
+                  }
+                  
+                  return (
+                    <div key={i} className="py-4 border-b border-[#e8efe9] flex justify-between items-center gap-4 px-1 md:px-0">
+                      <div className="flex flex-col flex-1">
+                        <div className="font-serif text-[#1e4832] text-[18px] md:text-[16px] leading-snug">{item.name}</div>
+                        {isAllergen && (
+                          <div className="font-mono text-[11px] text-[#991b1b] mt-1.5 leading-tight">
+                            Allergen: {item.detectedAllergens.join(', ')}
+                          </div>
+                        )}
+                      </div>
+                      <div className={`shrink-0 w-8 h-8 flex justify-center items-center ${badgeClass} rounded-[4px]`}>
+                        <Icon size={16} weight="fill" />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Bottom Actions */}
+              <div className="mt-auto flex gap-3 pt-2">
+                 <button 
+                   onClick={async () => {
+                     if (result.safetyStatus !== 'safe') {
+                       await confirmMealLog();
+                     }
+                     navigate('/app/history');
+                   }} 
+                   className="flex-1 py-[15px] rounded-[4px] bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#c0d4c8] font-mono text-[14px] text-white hover:brightness-110 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 hover:shadow-[0_8px_16px_rgba(0,0,0,0.2)] transition-all duration-200 shadow-md flex justify-center items-center gap-2 font-medium"
+                 >
+                   + Add to Daily Log
+                 </button>
+                 <button 
+                   onClick={handleReset} 
+                   className="w-[56px] h-[56px] shrink-0 rounded-[4px] border border-[#d1dfd6] flex items-center justify-center text-[#8ba797] hover:border-[#5a8069] hover:text-[#5a8069] bg-white transition-all shadow-sm"
+                 >
+                   <RefreshCw size={18} />
+                 </button>
+              </div>
             </div>
-          </div>
+          </>
         ) : (
           <div className="bg-white rounded-[4px] border border-[#e8efe9] p-8 flex flex-col items-center justify-center text-center shadow-sm">
             <h3 className="font-serif text-[32px] text-[#1e4832] mb-4">No Result Yet</h3>

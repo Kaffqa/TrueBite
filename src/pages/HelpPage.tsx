@@ -57,11 +57,9 @@ export default function HelpPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
         
-        {/* Left Column: Quick Start & FAQ */}
+        {/* Top Left: Quick Start */}
         <div className="md:col-span-2 flex flex-col gap-6">
-          
-          {/* Quick Start Grid */}
-          <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 shadow-sm">
+          <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 shadow-sm h-full">
             <h2 className="font-serif text-xl text-[#1e4832] mb-4 flex items-center gap-2">
               <BookOpen className="w-5 h-5 text-[#5c8b71]" /> Quick Start Guide
             </h2>
@@ -88,9 +86,26 @@ export default function HelpPage() {
               </div>
             </div>
           </div>
+        </div>
 
-          {/* FAQs */}
-          <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 shadow-sm">
+        {/* Top Right: Glossary */}
+        <div className="flex flex-col gap-6">
+          <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 shadow-sm flex-1">
+            <h2 className="font-serif text-lg text-[#1e4832] mb-4">Nutrition Glossary</h2>
+            <div className="space-y-4">
+              {GLOSSARY.map((item, idx) => (
+                <div key={idx}>
+                  <div className="font-mono font-bold text-[13px] text-[#1e4832] mb-1">{item.term}</div>
+                  <div className="font-mono text-xs text-[#6b8274]">{item.def}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        {/* Bottom Left: FAQs */}
+        <div className="md:col-span-2 flex flex-col gap-6">
+          <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 shadow-sm flex-1">
             <h2 className="font-serif text-xl text-[#1e4832] mb-4">Frequently Asked Questions</h2>
             <div className="space-y-3">
               {FAQS.map((faq, idx) => (
@@ -99,7 +114,7 @@ export default function HelpPage() {
                     onClick={() => toggleFaq(idx)}
                     className="w-full flex items-center justify-between p-4 bg-white hover:bg-[#f9faf9] transition-colors text-left"
                   >
-                    <span className="font-mono font-medium text-[13px] text-[#1e4832]">{faq.question}</span>
+                    <span className="font-mono font-bold text-[13px] text-[#1e4832]">{faq.question}</span>
                     <ChevronDown className={`w-4 h-4 text-[#8ba797] transition-transform duration-200 ${openFaqIndex === idx ? 'rotate-180' : ''}`} />
                   </button>
                   <AnimatePresence>
@@ -122,72 +137,48 @@ export default function HelpPage() {
           </div>
         </div>
 
-        {/* Right Column: Glossary, Tips, Privacy */}
-        <div className="flex flex-col gap-6 h-full">
-          
-          {/* Glossary */}
-          <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 shadow-sm">
-            <h2 className="font-serif text-lg text-[#1e4832] mb-4">Nutrition Glossary</h2>
-            <div className="space-y-4">
-              {GLOSSARY.map((item, idx) => (
-                <div key={idx}>
-                  <div className="font-mono font-bold text-[13px] text-[#1e4832] mb-1">{item.term}</div>
-                  <div className="font-mono text-xs text-[#6b8274]">{item.def}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
+        {/* Bottom Right: Still need help & Tips */}
+        <div className="flex flex-col gap-6">
           {/* Pro Tips */}
           <div className="bg-[#f0f5f2] rounded-[4px] border border-[#cfdfd5] p-6 shadow-sm">
             <h2 className="font-serif text-lg text-[#1e4832] mb-3 flex items-center gap-2">
               💡 Did you know?
             </h2>
             <p className="font-mono text-xs text-[#5a7a68] leading-relaxed">
-              You can tap on any flagged ingredient in your scan results to instantly open its detailed profile in the Smart Dictionary! It helps you understand exactly why an item might be unsafe for your diet.
+              You can tap on any flagged ingredient in your scan results to instantly open its detailed profile in the Smart Dictionary!
             </p>
           </div>
 
-          {/* Privacy & Data */}
-          <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 shadow-sm flex-1">
-            <h2 className="font-serif text-lg text-[#1e4832] mb-3">Privacy & Data Security</h2>
-            <p className="font-mono text-xs text-[#6b8274] leading-relaxed">
-              Your dietary profile and scan history are completely private. TrueBite uses industry-standard encryption to protect your data, and we never sell your personal health information to third parties.
-            </p>
+          <div className="bg-[#1a3825] rounded-[4px] p-6 text-white shadow-md flex-1 flex flex-col justify-center relative overflow-hidden">
+            {/* Decorative pattern */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-full -mr-10 -mt-10 blur-xl pointer-events-none"></div>
+            
+            <div className="relative z-10 mb-5">
+              <h2 className="font-serif text-xl mb-2 text-[#e8efe9]">Still need help?</h2>
+              <p className="font-mono text-xs text-[#a4b5aa] leading-relaxed">
+                Found a bug or have a suggestion to improve the AI scanner? We'd love to hear from you.
+              </p>
+            </div>
+            
+            <div className="flex flex-col gap-3 relative z-10">
+              <button 
+                onClick={() => alert("Thanks for your feedback! This feature will be available soon.")}
+                className="flex items-center justify-center gap-2 bg-white text-[#1a3825] font-mono text-xs py-3 px-6 rounded-[4px] hover:bg-[#f0f5f2] transition-colors shadow-sm"
+              >
+                <Bug size={16} /> Report a Bug
+              </button>
+              <a 
+                href="mailto:support@truebite.app"
+                className="flex items-center justify-center gap-2 border border-[#5c8b71] bg-transparent text-white font-mono text-xs py-3 px-6 rounded-[4px] hover:bg-white/10 transition-colors"
+              >
+                <Mail size={16} /> Email Support
+              </a>
+            </div>
           </div>
         </div>
-
       </div>
 
-      {/* Support / Feedback Full Width Banner */}
-      <div className="bg-gradient-to-r from-[#1a3825] to-[#2c583f] rounded-[4px] p-8 text-white shadow-md relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-6">
-        {/* Decorative pattern */}
-        <div className="absolute top-0 right-1/4 w-64 h-64 bg-white opacity-5 rounded-full -mr-10 -mt-20 blur-2xl pointer-events-none"></div>
-        
-        <div className="relative z-10 max-w-xl">
-          <h2 className="font-serif text-2xl mb-2">Still need help?</h2>
-          <p className="font-mono text-xs text-[#c5d1c9] leading-relaxed">
-            Found a bug or have a suggestion to improve the AI scanner? We'd love to hear from you. Our team is always looking to make TrueBite better for everyone.
-          </p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row gap-3 relative z-10 shrink-0">
-          <button 
-            onClick={() => alert("Thanks for your feedback! This feature will be available soon.")}
-            className="flex items-center justify-center gap-2 bg-white text-[#1a3825] font-mono font-bold text-xs py-3 px-6 rounded-[4px] hover:bg-[#f0f5f2] transition-colors shadow-sm"
-          >
-            <Bug size={16} /> Report a Bug
-          </button>
-          <a 
-            href="mailto:support@truebite.app"
-            className="flex items-center justify-center gap-2 border border-[#5c8b71] bg-[#1a3825]/40 text-white font-mono font-bold text-xs py-3 px-6 rounded-[4px] hover:bg-white/10 transition-colors backdrop-blur-sm"
-          >
-            <Mail size={16} /> Email Support
-          </a>
-        </div>
-      </div>
-
-      <div className="text-center font-mono text-[10px] text-[#8ba797] pt-8">
+      <div className="text-center font-mono text-[10px] text-[#8ba797] pt-2">
         TrueBite App Version 1.0.0
       </div>
 

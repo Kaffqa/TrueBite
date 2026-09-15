@@ -141,12 +141,12 @@ export default function IngredientsPage() {
         animate={{ opacity: 1, y: 0 }}
         className="bg-white rounded-[4px] shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-[#e8efe9] p-6 md:p-8 mb-6"
       >
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-serif text-[#1e4832] mb-2 tracking-tight">
+        <div className="flex flex-row items-start justify-between gap-4 mb-6">
+          <div className="flex-1 pr-2">
+            <h1 className="text-3xl md:text-4xl font-serif text-[#1e4832] mb-2 tracking-tight leading-none md:leading-tight">
               Smart Ingredient Dictionary
             </h1>
-            <p className="text-[#5a7a68] font-mono text-sm md:text-base">
+            <p className="text-[#5a7a68] font-mono text-xs md:text-base">
               Understand what's really inside your food.
             </p>
           </div>
@@ -155,12 +155,13 @@ export default function IngredientsPage() {
             <button
               onClick={generateSeedIngredients}
               disabled={isGenerating}
-              className="px-5 py-2.5 rounded-[4px] border border-[#cfdfd5] bg-white text-[#1e4832] font-mono text-[13px] flex items-center gap-2 hover:bg-[#f0f5f2] transition-colors disabled:opacity-50 flex-shrink-0"
+              title="Regenerate from Profile"
+              className="w-10 h-10 md:w-auto md:px-5 md:py-2.5 rounded-[4px] border border-[#cfdfd5] bg-white text-[#1e4832] font-mono text-[13px] flex items-center justify-center gap-2 hover:bg-[#f0f5f2] transition-colors disabled:opacity-50 flex-shrink-0"
             >
               {isGenerating ? (
-                <><Loader2 className="w-4 h-4 animate-spin text-[#6b9279]" /> Generating...</>
+                <><Loader2 className="w-5 h-5 md:w-4 md:h-4 animate-spin text-[#6b9279]" /> <span className="hidden md:inline">Generating...</span></>
               ) : (
-                <><Sparkle size={16} className="text-[#1a3825]" weight="fill" /> Regenerate from Profile</>
+                <><Sparkle size={20} className="text-[#1a3825] md:w-4 md:h-4" weight="fill" /> <span className="hidden md:inline">Regenerate</span></>
               )}
             </button>
           )}
@@ -181,23 +182,23 @@ export default function IngredientsPage() {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="grid grid-cols-2 md:flex md:flex-wrap items-center gap-2 md:gap-3">
           {filters.map((f) => {
             const isActive = filter === f;
             return (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
-                className={`relative w-[110px] py-2 rounded-[4px] text-sm font-mono transition-colors ${
+                className={`relative w-full md:w-[110px] py-2.5 md:py-2 rounded-[4px] text-sm font-mono transition-colors ${
                   isActive
-                    ? 'text-white border border-transparent'
+                    ? 'text-white border border-transparent shadow-[inset_0_2px_4px_rgba(0,0,0,0.1)]'
                     : 'bg-white text-[#5a7a68] border border-[#cfdfd5] hover:bg-[#f0f5f2] hover:text-[#1e4832]'
                 }`}
               >
                 {isActive && (
                   <motion.div
                     layoutId="active-filter-bg"
-                    className="absolute inset-0 bg-gradient-to-b from-[#6b9279] to-[#1a3825] rounded-[4px] shadow-md"
+                    className="absolute inset-0 bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#c0d4c8] rounded-[4px] shadow-md z-0"
                     initial={false}
                     transition={{ type: "spring", stiffness: 350, damping: 30 }}
                   />
