@@ -1,4 +1,4 @@
-import type { AIProvider, FoodAnalysisResult, UserHealthProfile } from '@/types/ai.types';
+import type { AIProvider, FoodAnalysisResult, UserHealthProfile, ConsumedToday } from '@/types/ai.types';
 import { buildSystemPrompt, buildTextSystemPrompt, buildUserPrompt, buildIngredientsSystemPrompt, FOOD_ANALYSIS_SCHEMA, INGREDIENTS_GENERATION_SCHEMA } from './prompt-builder';
 
 /**
@@ -10,9 +10,10 @@ export class GeminiProvider implements AIProvider {
    * Analyzes food from an image base64 string using Gemini.
    * @param imageBase64 - The base64 encoded image string (with or without data URI prefix).
    * @param userProfile - The user's health profile.
+   * @param consumedToday - Optional data about what the user has already consumed today.
    * @returns A promise resolving to the FoodAnalysisResult.
    */
-  async analyzeFood(imageBase64: string, userProfile: UserHealthProfile): Promise<FoodAnalysisResult> {
+  async analyzeFood(imageBase64: string, userProfile: UserHealthProfile, consumedToday?: ConsumedToday): Promise<FoodAnalysisResult> {
     const startTime = Date.now();
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 
@@ -27,7 +28,7 @@ export class GeminiProvider implements AIProvider {
       ? imageBase64.split('base64,')[1] 
       : imageBase64;
 
-    const systemPrompt = buildSystemPrompt(userProfile);
+    const systemPrompt = buildSystemPrompt(userProfile, consumedToday);
     const userPrompt = buildUserPrompt();
 
     const requestBody = {

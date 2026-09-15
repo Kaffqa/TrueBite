@@ -1,4 +1,4 @@
-import type { AIProvider, FoodAnalysisResult, UserHealthProfile } from '@/types/ai.types';
+import type { AIProvider, FoodAnalysisResult, UserHealthProfile, ConsumedToday } from '@/types/ai.types';
 import { GeminiProvider } from './providers/gemini-provider';
 import { GroqProvider } from './providers/groq-provider';
 
@@ -36,14 +36,16 @@ export function getAIProvider(): AIProvider {
  * 
  * @param imageBase64 - The base64 string of the food image.
  * @param userProfile - The user's health profile.
+ * @param consumedToday - Optional data about what the user has already consumed today.
  * @returns A promise that resolves to the food analysis result.
  */
 export async function analyzeFood(
   imageBase64: string,
-  userProfile: UserHealthProfile
+  userProfile: UserHealthProfile,
+  consumedToday?: ConsumedToday
 ): Promise<FoodAnalysisResult> {
   const provider = getAIProvider();
-  return provider.analyzeFood(imageBase64, userProfile);
+  return provider.analyzeFood(imageBase64, userProfile, consumedToday);
 }
 
 /**

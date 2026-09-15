@@ -61,7 +61,28 @@ export function useScanner() {
       };
 
       setScanState('analyzing');
-      const analysisResult = await analyzeFood(base64Data, userHealthProfile);
+
+      // Query today's consumed nutrition from meal_logs
+      const today = new Date().toISOString().split('T')[0];
+      const { data: todayLogs } = await supabase
+        .from('meal_logs')
+        .select('calories, sodium_mg, sugar_g')
+        .eq('user_id', user.id)
+        .gte('consumed_at', `${today}T00:00:00`)
+        .lte('consumed_at', `${today}T23:59:59`) as any;
+
+      const consumedToday = {
+        calories: todayLogs?.reduce((sum: number, log: any) => sum + (Number(log.calories) || 0), 0) || 0,
+        sodiumMg: todayLogs?.reduce((sum: number, log: any) => sum + (Number(log.sodium_mg) || 0), 0) || 0,
+        sugarG: todayLogs?.reduce((sum: number, log: any) => sum + (Number(log.sugar_g) || 0), 0) || 0,
+      };
+
+      const analysisResult = await analyzeFood(base64Data, userHealthProfile, consumedToday);
+
+      // Block non-food items before touching the database
+      if (analysisResult.scanType === ('not_food' as any) || analysisResult.mealTitle.toLowerCase() === 'not a food item') {
+        throw new Error('NOT_FOOD');
+      }
 
       // Save scan record
       const scanInsertData: any = {
@@ -78,6 +99,7 @@ export function useScanner() {
         total_fiber_g: analysisResult.totalNutrition.fiberG,
         total_sugar_g: analysisResult.totalNutrition.sugarG,
         total_sodium_mg: analysisResult.totalNutrition.sodiumMg,
+        raw_ai_response: analysisResult.dailyImpact,
       };
 
       // @ts-ignore
@@ -150,7 +172,23 @@ export function useScanner() {
       setScanState('complete');
     } catch (err: any) {
       console.error('Scan error:', err);
-      setError(err.message || 'An error occurred during scanning');
+      
+      let friendlyError = 'An unexpected error occurred while scanning the image.';
+      const rawError = err.message || '';
+      
+      if (rawError === 'NOT_FOOD') {
+        friendlyError = 'Oops! This doesn\'t look like food or drink. Please take a photo of an actual meal for analysis.';
+      } else if (rawError.includes('503') || rawError.includes('UNAVAILABLE') || rawError.includes('high demand') || rawError.includes('500')) {
+        friendlyError = 'The AI system is currently experiencing high demand. Please wait a moment and try again.';
+      } else if (rawError.includes('fetch') || rawError.includes('network')) {
+        friendlyError = 'Internet connection lost. Please check your network and try again.';
+      } else if (rawError.includes('API key')) {
+        friendlyError = 'System is not configured correctly (Missing API Key). Please contact the developer.';
+      } else {
+        friendlyError = `Failed to analyze image: ${rawError}`;
+      }
+
+      setError(friendlyError);
       setScanState('error');
     }
   };

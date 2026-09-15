@@ -320,6 +320,85 @@ export default function ScanResultPage() {
               </div>
             </div>
 
+            {/* Daily Impact */}
+            {scanRecord.raw_ai_response && (
+              <div className="bg-white rounded-[4px] border border-[#e8efe9] shadow-sm p-6 lg:p-8">
+                <h3 className="font-serif text-[24px] text-[#1e4832] mb-5">Daily Impact</h3>
+                
+                {(() => {
+                  const impact = scanRecord.raw_ai_response;
+                  const target = impact.caloriesConsumedBefore + (impact.caloriesRemaining < 0 
+                    ? (scanRecord.total_calories || 0) + impact.caloriesRemaining 
+                    : impact.caloriesRemaining + (scanRecord.total_calories || 0));
+                  const dailyTarget = target || 2000;
+                  const beforePct = Math.min(100, Math.round((impact.caloriesConsumedBefore / dailyTarget) * 100));
+                  const thisMealPct = Math.min(100 - beforePct, Math.round(((scanRecord.total_calories || 0) / dailyTarget) * 100));
+                  const totalAfter = impact.caloriesAfterThisMeal;
+                  const exceeded = impact.exceedsLimit;
+
+                  return (
+                    <div className="flex flex-col gap-4">
+                      {/* Progress Bar */}
+                      <div className="flex flex-col gap-2">
+                        <div className="flex justify-between font-mono text-[10px] text-[#6b8274] uppercase tracking-wider">
+                          <span>{totalAfter} / {dailyTarget} kcal</span>
+                          <span className={exceeded ? 'text-[#dc2626] font-bold' : 'text-[#166534] font-bold'}>
+                            {exceeded ? 'Over Limit' : `${impact.caloriesRemaining} kcal left`}
+                          </span>
+                        </div>
+                        <div className="h-3 w-full bg-[#e8efe9] overflow-hidden rounded-[4px] relative">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: beforePct + '%' }}
+                            transition={{ duration: 0.6, ease: 'easeOut' }}
+                            className="h-full bg-[#8ba797] absolute left-0 top-0"
+                          />
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: thisMealPct + '%' }}
+                            transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
+                            className={`h-full absolute top-0 ${exceeded ? 'bg-[#dc2626]' : 'bg-[#1a3825]'}`}
+                            style={{ left: beforePct + '%' }}
+                          />
+                        </div>
+                        <div className="flex gap-4 font-mono text-[9px] text-[#8ba797]">
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-2.5 h-2.5 rounded-[2px] bg-[#8ba797]" />
+                            Before ({impact.caloriesConsumedBefore} kcal)
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <div className={`w-2.5 h-2.5 rounded-[2px] ${exceeded ? 'bg-[#dc2626]' : 'bg-[#1a3825]'}`} />
+                            This Meal ({scanRecord.total_calories || 0} kcal)
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Summary */}
+                      <div className={`p-3 mt-2 rounded-[4px] border font-mono text-[11px] leading-relaxed ${
+                        exceeded 
+                          ? 'bg-[#fef2f2] border-[#fecaca] text-[#991b1b]' 
+                          : 'bg-[#f0f5f2] border-[#c5d1c9] text-[#166534]'
+                      }`}>
+                        {impact.summary}
+                      </div>
+
+                      {/* Percentage Badge */}
+                      <div className="flex justify-center mt-2">
+                        <div className={`inline-flex items-center justify-center text-center gap-2 px-4 py-2 rounded-[4px] font-mono text-[11px] font-bold w-full ${
+                          exceeded 
+                            ? 'bg-[#fef2f2] text-[#dc2626] border border-[#fecaca]' 
+                            : 'bg-[#f0f5f2] text-[#166534] border border-[#c5d1c9]'
+                        }`}>
+                          This meal is {impact.percentageOfDailyTarget}% of your daily target
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
+
+
           </div>
         </div>
       </div>

@@ -67,6 +67,7 @@ export interface FoodAnalysisResult {
   totalNutrition: NutritionData;
   ingredientExplanations: IngredientExplanation[];
   recommendations: string[];
+  dailyImpact?: DailyImpact;
   rawResponse: unknown;
   processingTimeMs: number;
   modelVersion: string;
@@ -86,10 +87,31 @@ export interface UserHealthProfile {
 }
 
 /**
+ * Data representing the user's already-consumed nutrition for the current day.
+ */
+export interface ConsumedToday {
+  calories: number;
+  sodiumMg: number;
+  sugarG: number;
+}
+
+/**
+ * AI-generated daily impact analysis comparing this meal against remaining daily allowance.
+ */
+export interface DailyImpact {
+  caloriesConsumedBefore: number;
+  caloriesAfterThisMeal: number;
+  caloriesRemaining: number;
+  percentageOfDailyTarget: number;
+  exceedsLimit: boolean;
+  summary: string;
+}
+
+/**
  * Interface for AI service providers
  */
 export interface AIProvider {
   name: string;
-  analyzeFood(imageBase64: string, userProfile: UserHealthProfile): Promise<FoodAnalysisResult>;
+  analyzeFood(imageBase64: string, userProfile: UserHealthProfile, consumedToday?: ConsumedToday): Promise<FoodAnalysisResult>;
   analyzeText(description: string, userProfile: UserHealthProfile): Promise<FoodAnalysisResult>;
 }

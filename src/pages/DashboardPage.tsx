@@ -127,17 +127,6 @@ const DailySummaryCard = ({ profile, todaySummary }: any) => {
         {/* Donut Chart */}
         <div className="relative w-[240px] h-[240px] md:w-[200px] md:h-[200px] flex-shrink-0">
           <svg viewBox="0 0 100 100" className="w-full h-full transform -rotate-90 overflow-visible">
-               <defs>
-                 <filter id="soft-rounded" x="-30%" y="-30%" width="160%" height="160%">
-                   <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur" />
-                   <feColorMatrix in="blur" mode="matrix" values="
-                     1 0 0 0 0
-                     0 1 0 0 0
-                     0 0 1 0 0
-                     0 0 0 15 -6
-                   " />
-                 </filter>
-               </defs>
                <g filter="url(#soft-rounded)">
                  {/* Gray (Remaining) */}
                  {grayArcLen > 0 && (
@@ -173,13 +162,6 @@ const DailySummaryCard = ({ profile, todaySummary }: any) => {
 
         {/* Macros */}
         <div className="flex-1 flex flex-col justify-center w-full relative">
-          <svg width="0" height="0" className="absolute">
-            <linearGradient id="lightning-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop stopColor="#e55941" offset="0%" />
-              <stop stopColor="#e68846" offset="50%" />
-              <stop stopColor="#e7ac4b" offset="100%" />
-            </linearGradient>
-          </svg>
           <div className="flex items-center gap-2 mb-6 text-[#1e4832] font-normal">
             <Lightning size={22} weight="fill" style={{ fill: 'url(#lightning-grad)' }} className="mr-1 -mt-0.5" />
             <span className="font-serif text-[18px] md:text-[17px]">{consumed}</span> 
@@ -292,7 +274,7 @@ const RecentScansCard = ({ scans, loading }: { scans: any[], loading: boolean })
             const status = safetyConfig[scan.safety_status] || safetyConfig.unknown;
             const emoji = guessEmoji(scan.meal_title || '');
             const timeStr = scan.created_at 
-              ? formatDistanceToNow(new Date(scan.created_at), { addSuffix: true })
+              ? format(new Date(scan.created_at), 'HH:mm')
               : '';
 
             return (
@@ -577,6 +559,24 @@ export default function DashboardPage() {
       animate={{ opacity: 1 }}
       className="w-full h-full pb-8"
     >
+      <svg width="0" height="0" className="absolute">
+        <defs>
+          <filter id="soft-rounded" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur" />
+            <feColorMatrix in="blur" mode="matrix" values="
+              1 0 0 0 0
+              0 1 0 0 0
+              0 0 1 0 0
+              0 0 0 15 -6
+            " />
+          </filter>
+        </defs>
+        <linearGradient id="lightning-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop stopColor="#e55941" offset="0%" />
+          <stop stopColor="#e68846" offset="50%" />
+          <stop stopColor="#e7ac4b" offset="100%" />
+        </linearGradient>
+      </svg>
       <div className="max-w-7xl mx-auto w-full">
         {/* Mobile Layout (hidden on lg) */}
         <div className="lg:hidden flex flex-col gap-6">
