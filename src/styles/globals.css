@@ -84,4 +84,24 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite linear;
+    background: linear-gradient(
+      90deg,
+      rgba(232, 239, 233, 0.4) 0%,
+      rgba(232, 239, 233, 0.8) 50%,
+      rgba(232, 239, 233, 0.4) 100%
+    );
+    background-size: 200% 100%;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }

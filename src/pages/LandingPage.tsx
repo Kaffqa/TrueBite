@@ -3,6 +3,7 @@ import { Navigate, Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { ArrowRight, Leaf, ShieldCheck, Activity, ScanLine, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Skeleton } from '@/components/ui/Skeleton';
 import AuthModal from '@/components/auth/AuthModal';
 
 export default function LandingPage() {
@@ -43,8 +44,46 @@ export default function LandingPage() {
     };
   }, [isMobileMenuOpen]);
 
+  // Loading state with Landing Page Skeleton
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-[#F6F4EB] md:bg-white p-2 md:p-4">
+        <header className="w-full px-5 md:px-6 lg:px-12 py-3 md:py-4 flex justify-between items-center bg-white rounded-[32px] md:rounded-t-[32px] shadow-sm border border-[#e8efe9] md:border-transparent">
+          <div className="flex items-center gap-3">
+            <Skeleton className="w-8 h-8 md:w-11 md:h-11 rounded-full bg-[#d5e0d8]" />
+            <Skeleton className="w-24 h-6 md:h-8 bg-[#d5e0d8]" />
+          </div>
+          <div className="hidden md:flex items-center gap-8">
+            <div className="flex gap-6">
+              {[1, 2, 3].map(i => <Skeleton key={i} className="w-20 h-4 bg-[#d5e0d8]" />)}
+            </div>
+            <Skeleton className="w-32 h-10 rounded-full bg-[#d5e0d8]" />
+          </div>
+        </header>
+
+        <main className="flex-1 bg-[#F6F4EB] w-full flex flex-col pt-12 pb-16 px-6 lg:px-12">
+          <div className="flex flex-col lg:flex-row justify-between items-start gap-12 w-full">
+            <div className="lg:w-[50%]">
+              <Skeleton className="w-24 h-4 mb-6 bg-[#d5e0d8]" />
+              <Skeleton className="w-full h-16 md:h-24 bg-[#d5e0d8] mb-4" />
+              <Skeleton className="w-3/4 h-16 md:h-24 bg-[#d5e0d8]" />
+            </div>
+            
+            <div className="lg:w-[50%] flex flex-col items-start lg:items-end pt-2 lg:pt-[72px] w-full">
+              <Skeleton className="w-full md:w-64 h-20 mb-10 bg-[#d5e0d8]" />
+              <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+                <Skeleton className="w-full md:w-48 h-12 rounded-full bg-[#d5e0d8]" />
+                <Skeleton className="w-full md:w-40 h-12 rounded-full bg-[#d5e0d8]" />
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   // If already logged in, redirect to the app dashboard
-  if (!loading && user) {
+  if (user) {
     return <Navigate to="/app" replace />;
   }
 

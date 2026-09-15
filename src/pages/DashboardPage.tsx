@@ -7,6 +7,7 @@ import { ScanLine, Loader2 } from 'lucide-react';
 import { Scan as PhosphorScan, ShieldCheck, ShieldWarning, Warning, Lightning } from '@phosphor-icons/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { format, formatDistanceToNow, startOfDay, endOfDay } from 'date-fns';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { getEmojiForIcon } from '@/lib/emoji-map';
@@ -59,7 +60,37 @@ function getSmartTip(consumed: number, target: number, flagCount: number): strin
   return "You've exceeded your daily calorie target. Consider lighter options for the rest of the day.";
 }
 
-const DailySummaryCard = ({ profile, todaySummary }: any) => {
+const DailySummaryCard = ({ profile, todaySummary, loading }: any) => {
+  if (loading) {
+    return (
+      <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 lg:p-8 flex flex-col shadow-sm">
+        <div className="flex justify-between items-start mb-8">
+          <div>
+            <Skeleton className="h-3 w-24 mb-2" />
+            <Skeleton className="h-8 w-48 mb-2" />
+            <Skeleton className="h-3 w-64" />
+          </div>
+        </div>
+        <div className="flex flex-col md:flex-row gap-8 lg:gap-12 items-center">
+          <div className="relative flex-shrink-0 flex items-center justify-center">
+            <Skeleton className="w-[180px] h-[180px] rounded-full" />
+          </div>
+          <div className="flex-1 w-full space-y-5">
+            {[1, 2, 3].map((i) => (
+              <div key={i}>
+                <div className="flex justify-between text-[11px] font-mono mb-2">
+                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-3 w-12" />
+                </div>
+                <Skeleton className="h-1.5 w-full rounded-full" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const navigate = useNavigate();
   const dateStr = format(new Date(), 'dd - MM - yyyy');
   const firstName = profile?.full_name?.split(' ')[0] || 'User';
@@ -245,25 +276,34 @@ const RecentScansCard = ({ scans, loading }: { scans: any[], loading: boolean })
   }
 
   return (
-    <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 lg:p-8 shadow-sm flex flex-col flex-1">
-      <div className="flex justify-between items-center mb-6">
+    <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 lg:p-8 flex flex-col shadow-sm">
+      <div className="flex justify-between items-end mb-6 border-b border-[#e8efe9] pb-4">
         <div>
-          <h2 className="text-2xl font-serif text-[#1e4832]">Recent Scans</h2>
-          <p className="font-mono text-xs text-[#6b8274] mt-1">Today's activity</p>
+          <h2 className="text-[20px] font-serif text-[#1e4832] mb-1">Recent Scans</h2>
+          <p className="font-mono text-[11px] text-[#8ba797]">Your latest food analysis</p>
         </div>
-        <Link to="/app/history" className="px-5 py-2 rounded-[4px] border border-[#c5d1c9] text-[#1e4832] font-mono text-[11px] hover:bg-[#f0f5f2] transition-colors">
+        <Link to="/app/history" className="font-mono text-[11px] text-[#1e4832] font-semibold hover:underline mb-1">
           View Full Log
         </Link>
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="w-6 h-6 animate-spin text-[#8ba797]" />
+        <div className="flex flex-col gap-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="flex items-center gap-4 p-3 rounded-[4px] border border-[#e8efe9] bg-white">
+              <Skeleton className="w-12 h-12 rounded-[4px]" />
+              <div className="flex-1">
+                <Skeleton className="h-4 w-32 mb-2" />
+                <Skeleton className="h-3 w-16" />
+              </div>
+              <Skeleton className="h-6 w-16 rounded-[4px]" />
+            </div>
+          ))}
         </div>
       ) : scans.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <div className="w-14 h-14 rounded-full bg-[#f0f5f2] flex items-center justify-center mb-4">
-            <ScanLine className="w-6 h-6 text-[#8ba797]" />
+            <PhosphorScan className="w-6 h-6 text-[#8ba797]" />
           </div>
           <p className="font-serif text-[15px] text-[#1e4832] mb-1">No scans yet</p>
           <p className="font-mono text-[11px] text-[#8ba797]">Your recent scans will appear here</p>
@@ -313,7 +353,34 @@ const RecentScansCard = ({ scans, loading }: { scans: any[], loading: boolean })
   );
 };
 
-const ScannerActionCard = ({ scanCount, flagCount, streakDays }: { scanCount: number, flagCount: number, streakDays: number }) => {
+const ScannerActionCard = ({ scanCount, flagCount, streakDays, loading }: { scanCount: number, flagCount: number, streakDays: number, loading?: boolean }) => {
+  const navigate = useNavigate();
+
+  if (loading) {
+    return (
+      <div className="bg-[#1a3825] rounded-[4px] p-6 lg:p-8 shadow-md flex flex-col justify-between">
+        <div>
+          <Skeleton className="h-8 w-48 mb-4 bg-[#2d523b]" />
+          <div className="space-y-2 mb-8">
+            <Skeleton className="h-4 w-full bg-[#2d523b]" />
+            <Skeleton className="h-4 w-3/4 bg-[#2d523b]" />
+          </div>
+        </div>
+  
+        <Skeleton className="hidden md:flex w-full h-14 mb-8 rounded-[4px] bg-[#2d523b]" />
+  
+        <div className="grid grid-cols-3 gap-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="bg-[#122b1e] rounded-[4px] py-4 flex flex-col items-center justify-center border border-[#1a3825]">
+              <Skeleton className="h-8 w-8 mb-2 bg-[#2d523b]" />
+              <Skeleton className="h-3 w-12 bg-[#2d523b]" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-[#1a3825] rounded-[4px] p-6 lg:p-8 shadow-md flex flex-col justify-between">
       <div>
@@ -380,8 +447,20 @@ const IngredientOfDayWidget = ({ user, profile }: { user: any, profile: any }) =
 
   if (loading) {
     return (
-      <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 lg:p-8 shadow-sm flex flex-col flex-1 items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-[#8ba797]" />
+      <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 lg:p-8 flex flex-col shadow-sm">
+        <div className="flex items-center gap-3 mb-6">
+          <Skeleton className="w-10 h-10 rounded-[4px]" />
+          <div>
+            <Skeleton className="h-4 w-32 mb-2" />
+            <Skeleton className="h-3 w-20" />
+          </div>
+        </div>
+        <div className="space-y-2 mb-6">
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-3/4" />
+        </div>
+        <Skeleton className="h-10 w-full mt-auto" />
       </div>
     );
   }

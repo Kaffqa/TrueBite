@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MagnifyingGlass, CaretLeft, CaretRight, SpinnerGap, Sparkle } from '@phosphor-icons/react';
-import { motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { Loader2 } from 'lucide-react';
 import IngredientCard from '@/components/ingredients/IngredientCard';
 import { useIngredients } from '@/hooks/useIngredients';
@@ -212,8 +213,20 @@ export default function IngredientsPage() {
 
       {/* Content */}
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-[#6b8274]" />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="bg-white rounded-[4px] border border-[#e8efe9] p-5 shadow-sm h-48 flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start mb-3">
+                  <Skeleton className="h-6 w-32 bg-[#d5e0d8]" />
+                  <Skeleton className="h-5 w-16 bg-[#d5e0d8] rounded-full" />
+                </div>
+                <Skeleton className="h-4 w-full bg-[#d5e0d8] mb-1" />
+                <Skeleton className="h-4 w-5/6 bg-[#d5e0d8]" />
+              </div>
+              <Skeleton className="h-8 w-24 bg-[#d5e0d8] mt-4" />
+            </div>
+          ))}
         </div>
       ) : error ? (
         <div className="text-center py-12 bg-white rounded-[4px] border border-[#e8efe9] mb-8">

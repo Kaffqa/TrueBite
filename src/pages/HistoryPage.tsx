@@ -1,7 +1,8 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { format, startOfDay, endOfDay, isToday as isTodayFn } from 'date-fns';
+import { format, startOfDay, endOfDay, isToday as isTodayFn, isSameDay, subDays, parseISO } from 'date-fns';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { Scan as PhosphorScan, CalendarDots, CheckCircle, Warning, WarningCircle, CaretDown, Plus, X, MagicWand, ShieldCheck, ShieldWarning, Lightning, Fire, FireSimple } from '@phosphor-icons/react';
 import { Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -342,10 +343,11 @@ export function HistoryPage() {
             
             <button 
               onClick={() => openAddModal(mealType)}
-              className="w-8 h-8 md:w-9 md:h-9 bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#c0d4c8] text-white rounded-[4px] flex items-center justify-center shadow-md hover:brightness-110 active:scale-95 transition-all shrink-0"
+              className="w-8 h-8 md:w-auto md:h-9 md:px-3 bg-gradient-to-b from-[#88ba9d] to-[#173d26] border border-[#c0d4c8] text-white rounded-[4px] flex items-center justify-center gap-1.5 shadow-md hover:brightness-110 active:scale-95 transition-all shrink-0"
               aria-label={`Add food to ${title}`}
             >
               <Plus size={16} weight="bold" />
+              <span className="hidden md:inline font-mono text-[11px]">Add Food</span>
             </button>
           </div>
         </div>
@@ -554,14 +556,26 @@ export function HistoryPage() {
         {loading ? (
           <motion.div
             key="loading"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-            className="flex flex-col items-center justify-center py-20 opacity-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="space-y-4 py-4"
           >
-            <Loader2 className="w-8 h-8 animate-spin text-[#8ba797] mb-4" />
-            <p className="font-mono text-sm text-[#8ba797]">Fetching journal...</p>
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="bg-white rounded-[4px] border border-[#e8efe9] p-5 shadow-sm flex items-start gap-4">
+                <Skeleton className="w-12 h-12 rounded-[4px] bg-[#d5e0d8]" />
+                <div className="flex-1 space-y-3">
+                  <div className="flex justify-between items-start">
+                    <Skeleton className="h-5 w-48 bg-[#d5e0d8]" />
+                    <Skeleton className="h-4 w-16 bg-[#d5e0d8]" />
+                  </div>
+                  <div className="flex gap-2">
+                    <Skeleton className="h-4 w-24 bg-[#d5e0d8]" />
+                    <Skeleton className="h-4 w-24 bg-[#d5e0d8]" />
+                  </div>
+                </div>
+              </div>
+            ))}
           </motion.div>
         ) : (
           <motion.div 

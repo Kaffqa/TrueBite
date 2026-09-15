@@ -4,6 +4,7 @@ import { CaretLeft, ShieldCheck, Warning, ShieldWarning, Info, PlusCircle, Check
 import { Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format, formatDistanceToNow, isToday } from 'date-fns';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { supabase } from '@/lib/supabase';
 import { useScanner } from '@/hooks/useScanner';
 import { useNutrition } from '@/contexts/NutritionContext';
@@ -90,8 +91,49 @@ export default function ScanResultPage() {
 
   if (loading) {
     return (
-      <div className="w-full h-full min-h-screen bg-[#f4f7f5] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#6b8274]" />
+      <div className="pb-24 pt-2">
+        <div className="mb-6">
+          <Skeleton className="h-10 w-40 bg-[#d5e0d8]" />
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+          <div className="lg:col-span-8 flex flex-col gap-5">
+            <div className="bg-white rounded-[4px] border border-[#e8efe9] shadow-sm overflow-hidden flex flex-col">
+              <Skeleton className="w-full h-64 lg:h-80 rounded-none bg-[#d5e0d8]" />
+              <div className="p-6 lg:p-8">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-2">
+                  <Skeleton className="h-8 w-64 bg-[#d5e0d8]" />
+                  <Skeleton className="h-6 w-24 bg-[#d5e0d8]" />
+                </div>
+                <Skeleton className="h-4 w-40 bg-[#d5e0d8] mt-2" />
+              </div>
+            </div>
+            <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 lg:p-8 shadow-sm">
+              <Skeleton className="h-6 w-48 bg-[#d5e0d8] mb-6" />
+              <div className="space-y-4">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="flex gap-4">
+                    <Skeleton className="h-5 w-24 bg-[#d5e0d8] shrink-0" />
+                    <Skeleton className="h-4 w-full bg-[#d5e0d8] mt-1" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="lg:col-span-4 flex flex-col gap-5">
+            <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 shadow-sm">
+              <Skeleton className="h-12 w-full bg-[#d5e0d8]" />
+            </div>
+            <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 shadow-sm">
+              <Skeleton className="h-6 w-48 bg-[#d5e0d8] mb-4" />
+              <Skeleton className="h-32 w-full bg-[#d5e0d8] mb-6" />
+              <div className="space-y-4">
+                {[1, 2, 3].map(i => (
+                  <Skeleton key={i} className="h-2 w-full bg-[#d5e0d8]" />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

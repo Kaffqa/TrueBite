@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useProfile } from '@/hooks/useProfile';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { LogOut, User, Ruler, Weight as WeightIcon, Calendar, Activity, Target as TargetIcon, Zap, Flame, ShieldAlert, Heart, Utensils, Edit3, Trash2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { differenceInYears, parseISO } from 'date-fns';
@@ -18,8 +19,29 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-full min-h-[50vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1e4832]"></div>
+      <div className="w-full h-full pb-8">
+        <div className="max-w-4xl mx-auto w-full">
+          <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 shadow-sm mb-6 flex items-center gap-4">
+            <Skeleton className="w-16 h-16 rounded-full bg-[#d5e0d8]" />
+            <div>
+              <Skeleton className="h-6 w-48 mb-2 bg-[#d5e0d8]" />
+              <Skeleton className="h-4 w-32 bg-[#d5e0d8]" />
+            </div>
+          </div>
+          <div className="bg-white rounded-[4px] border border-[#e8efe9] p-6 shadow-sm">
+            <div className="space-y-6">
+              {[1, 2, 3, 4, 5].map(i => (
+                <div key={i} className="flex justify-between items-center py-4 border-b border-[#e8efe9] last:border-0">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="w-5 h-5 bg-[#d5e0d8]" />
+                    <Skeleton className="h-4 w-32 bg-[#d5e0d8]" />
+                  </div>
+                  <Skeleton className="h-4 w-24 bg-[#d5e0d8]" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
