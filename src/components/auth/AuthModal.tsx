@@ -5,10 +5,12 @@ import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import PrivacyPolicyModal from './PrivacyPolicyModal';
 
 const authSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
+  privacyPolicy: z.boolean().optional(),
 });
 
 type AuthFormValues = z.infer<typeof authSchema>;
@@ -25,8 +27,9 @@ export default function AuthModal({ isOpen, onClose, defaultView = 'signup' }: A
   const [view, setView] = useState<'login' | 'signup'>(defaultView);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isPrivacyModalOpen, setPrivacyModalOpen] = useState(false);
 
-  const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<AuthFormValues>({
+  const { register, handleSubmit, formState: { errors, isSubmitting }, reset, setError: setFormError } = useForm<AuthFormValues>({
     resolver: zodResolver(authSchema)
   });
 
@@ -46,6 +49,12 @@ export default function AuthModal({ isOpen, onClose, defaultView = 'signup' }: A
     try {
       setError(null);
       setSuccess(null);
+      
+      if (view === 'signup' && !data.privacyPolicy) {
+        setFormError('privacyPolicy', { type: 'manual', message: 'You must agree to the Privacy Policy' });
+        return;
+      }
+
       const cleanEmail = data.email.trim();
       
       if (view === 'login') {
@@ -219,6 +228,36 @@ export default function AuthModal({ isOpen, onClose, defaultView = 'signup' }: A
                 </AnimatePresence>
               </div>
 
+              {view === 'signup' && (
+                <div className="flex flex-col mt-2 px-1">
+                  <label htmlFor="privacyPolicy" className="flex items-center gap-2 cursor-pointer select-none">
+                    <input 
+                      type="checkbox"
+                      {...register('privacyPolicy')}
+                      id="privacyPolicy"
+                      className="w-3.5 h-3.5 rounded border-[#163323]/20 text-[#5c8263] focus:ring-[#5c8263] accent-[#5c8263] cursor-pointer shrink-0"
+                    />
+                    <span className="text-[12px] font-mono text-[#163323]/60 leading-none pt-[1.5px]">
+                      I have read and agree to the{' '}
+                      <button 
+                        type="button" 
+                        onClick={(e) => { e.preventDefault(); setPrivacyModalOpen(true); }} 
+                        className="text-[#5c8263] underline font-bold hover:text-[#2a4e35] transition-colors"
+                      >
+                        Privacy Policy
+                      </button>
+                    </span>
+                  </label>
+                  <AnimatePresence>
+                    {errors.privacyPolicy && (
+                      <motion.p initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="text-red-500 text-[11px] mt-1.5 font-mono">
+                        {errors.privacyPolicy.message as string}
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+
               <button 
                 type="submit" 
                 disabled={isSubmitting}
@@ -259,9 +298,27 @@ export default function AuthModal({ isOpen, onClose, defaultView = 'signup' }: A
               </svg>
               Continue with Google
             </button>
+
+            {view === 'login' && (
+              <p className="text-center text-[11px] font-mono text-[#163323]/50 mt-6 leading-relaxed">
+                By logging in, you agree to our{' '}
+                <button 
+                  type="button" 
+                  onClick={() => setPrivacyModalOpen(true)} 
+                  className="text-[#5c8263] underline font-bold hover:text-[#2a4e35] transition-colors"
+                >
+                  Privacy Policy
+                </button>
+              </p>
+            )}
           </div>
         </motion.div>
       </div>
+
+      <PrivacyPolicyModal 
+        isOpen={isPrivacyModalOpen} 
+        onClose={() => setPrivacyModalOpen(false)} 
+      />
     </AnimatePresence>
   );
 }
