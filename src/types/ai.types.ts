@@ -114,4 +114,6 @@ export interface AIProvider {
   name: string;
   analyzeFood(imageBase64: string, userProfile: UserHealthProfile, consumedToday?: ConsumedToday): Promise<FoodAnalysisResult>;
   analyzeText(description: string, userProfile: UserHealthProfile): Promise<FoodAnalysisResult>;
+  generateIngredients?(userProfile: UserHealthProfile): Promise<any[]>;
+  enrichIngredients?(ingredientNames: string[], userProfile: UserHealthProfile): Promise<any[]>;
 }

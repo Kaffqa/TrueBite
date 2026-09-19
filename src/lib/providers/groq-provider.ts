@@ -1,5 +1,5 @@
 import type { AIProvider, FoodAnalysisResult, UserHealthProfile, ConsumedToday } from '@/types/ai.types';
-import { buildSystemPrompt, buildTextSystemPrompt, buildUserPrompt, buildIngredientsSystemPrompt } from './prompt-builder';
+import { buildSystemPrompt, buildTextSystemPrompt, buildUserPrompt, buildIngredientsSystemPrompt, FOOD_ANALYSIS_SCHEMA, INGREDIENTS_GENERATION_SCHEMA } from './prompt-builder';
 
 /**
  * Implementation of AIProvider using the Groq REST API.
@@ -28,11 +28,12 @@ export class GroqProvider implements AIProvider {
     const systemPrompt = buildSystemPrompt(userProfile, consumedToday);
     const userPrompt = buildUserPrompt();
 
-    const fullSystemPrompt = `${systemPrompt}\n\nEnsure your response is valid JSON matching the schema requirements.`;
+    const fullSystemPrompt = `${systemPrompt}\n\nEnsure your response is a valid JSON object matching exactly this JSON schema:\n${JSON.stringify(FOOD_ANALYSIS_SCHEMA, null, 2)}`;
 
     const requestBody = {
       model: 'qwen/qwen3.8-27b',
-      max_tokens: 800,
+      max_tokens: 4096,
+      temperature: 0.3,
       messages: [
         {
           role: 'system',
@@ -96,11 +97,12 @@ export class GroqProvider implements AIProvider {
     
     const systemPrompt = buildTextSystemPrompt(userProfile);
     const userPrompt = `Analyze this food description: "${description}". Estimate nutrition and check for safety concerns based on my health profile.`;
-    const fullSystemPrompt = `${systemPrompt}\n\nEnsure your response is valid JSON matching the schema requirements.`;
+    const fullSystemPrompt = `${systemPrompt}\n\nEnsure your response is a valid JSON object matching exactly this JSON schema:\n${JSON.stringify(FOOD_ANALYSIS_SCHEMA, null, 2)}`;
 
     const requestBody = {
       model: 'openai/gpt-oss-120b',
-      max_tokens: 800,
+      max_tokens: 4096,
+      temperature: 0.3,
       messages: [
         { role: 'system', content: fullSystemPrompt },
         { role: 'user', content: userPrompt }
@@ -146,11 +148,12 @@ export class GroqProvider implements AIProvider {
 
     const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
     const systemPrompt = buildIngredientsSystemPrompt(userProfile);
-    const fullSystemPrompt = `${systemPrompt}\n\nEnsure your response is a valid JSON object containing an "ingredients" array.`;
+    const fullSystemPrompt = `${systemPrompt}\n\nEnsure your response is a valid JSON object matching exactly this JSON schema:\n${JSON.stringify(INGREDIENTS_GENERATION_SCHEMA, null, 2)}`;
 
     const requestBody = {
       model: 'openai/gpt-oss-120b',
-      max_tokens: 800,
+      max_tokens: 4096,
+      temperature: 0.3,
       messages: [
         { role: 'system', content: fullSystemPrompt },
         { role: 'user', content: 'Generate personalized ingredients.' }
@@ -203,7 +206,8 @@ Return ONLY the JSON object like this: { "results": [ ...array items... ] }`;
 
     const requestBody = {
       model: 'openai/gpt-oss-120b',
-      max_tokens: 800,
+      max_tokens: 4096,
+      temperature: 0.3,
       messages: [
         { role: 'user', content: prompt }
       ],

@@ -1,21 +1,26 @@
 import type { AIProvider, FoodAnalysisResult, UserHealthProfile, ConsumedToday } from '@/types/ai.types';
 import { GeminiProvider } from './providers/gemini-provider';
 import { GroqProvider } from './providers/groq-provider';
+import { FallbackProvider } from './providers/fallback-provider';
 
 /**
  * Creates an AI provider instance based on environment configuration.
- * Defaults to Gemini if no provider is specified.
+ * Defaults to FallbackProvider (Gemini -> Groq) if no provider is specified.
  */
 export function createAIProvider(): AIProvider {
-  const providerName = import.meta.env.VITE_AI_PROVIDER || 'gemini';
+  const providerName = import.meta.env.VITE_AI_PROVIDER || 'fallback';
+  const hasGroq = !!import.meta.env.VITE_GROQ_API_KEY;
   
-  switch (providerName) {
-    case 'groq':
-      return new GroqProvider();
-    case 'gemini':
-    default:
-      return new GeminiProvider();
+  if (providerName === 'groq') {
+    return new GroqProvider();
   }
+  
+  if (providerName === 'gemini' || !hasGroq) {
+    return new GeminiProvider();
+  }
+  
+  // Default: FallbackProvider (Groq as primary, Gemini as fallback)
+  return new FallbackProvider(new GroqProvider(), new GeminiProvider());
 }
 
 /** Singleton AI provider instance */

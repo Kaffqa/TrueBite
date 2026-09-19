@@ -178,8 +178,8 @@ export function useScanner() {
       
       if (rawError === 'NOT_FOOD') {
         friendlyError = 'Oops! This doesn\'t look like food or drink. Please take a photo of an actual meal for analysis.';
-      } else if (rawError.includes('503') || rawError.includes('UNAVAILABLE') || rawError.includes('high demand') || rawError.includes('500')) {
-        friendlyError = 'The AI system is currently experiencing high demand. Please wait a moment and try again.';
+      } else if (rawError.includes('503') || rawError.includes('UNAVAILABLE') || rawError.includes('high demand') || rawError.includes('500') || rawError.includes('429')) {
+        friendlyError = 'The AI system is experiencing high demand. Backup providers were attempted but also failed. Please wait a moment and try again.';
       } else if (rawError.includes('fetch') || rawError.includes('network')) {
         friendlyError = 'Internet connection lost. Please check your network and try again.';
       } else if (rawError.includes('API key')) {
